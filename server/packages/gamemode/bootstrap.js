@@ -29,14 +29,14 @@ const bootstrap = async () => {
   loadEnvironment();
 
   const config = loadConfig();
-  const db = createDatabaseConnection(config.database);
-  runMigrations(db);
-  const repositories = buildRepositories(db);
+  const pool = await createDatabaseConnection(config.database);
+  await runMigrations(pool, config);
+  const repositories = buildRepositories(pool);
   const services = buildServices({ config, repositories });
 
   const context = {
     config,
-    db,
+    db: pool,
     repositories,
     services
   };

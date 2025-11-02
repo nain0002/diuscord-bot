@@ -2,9 +2,6 @@ const path = require('path');
 
 const loadConfig = () => {
   const rootDir = path.resolve(__dirname, '../../..');
-  const dbPath = process.env.DB_PATH
-    ? path.resolve(rootDir, process.env.DB_PATH)
-    : path.resolve(__dirname, '../database/rage.db');
 
   const origins = (process.env.ADMIN_PANEL_ORIGINS || '')
     .split(',')
@@ -14,7 +11,12 @@ const loadConfig = () => {
   return {
     rootDir,
     database: {
-      path: dbPath
+      host: process.env.DB_HOST || '127.0.0.1',
+      port: Number(process.env.DB_PORT || 3306),
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      name: process.env.DB_NAME || 'rage_server',
+      connectionLimit: Number(process.env.DB_POOL_LIMIT || 10)
     },
     adminPanel: {
       port: Number(process.env.ADMIN_PANEL_PORT || 3001),

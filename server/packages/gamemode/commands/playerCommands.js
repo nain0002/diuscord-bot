@@ -32,7 +32,7 @@ const registerAuthCommands = ({ services }) => {
       }
       const account = await services.auth.login({ username, password });
       services.state.attach(player, account);
-      services.inventory.getInventory(player);
+      await services.inventory.getInventory(player);
       player.outputChatBox(`!{#44ff44}Welcome back ${account.username}!`);
     } catch (error) {
       player.outputChatBox(`!{#ff4444}Login failed: ${error.message}`);

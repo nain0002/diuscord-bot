@@ -1,22 +1,35 @@
-const Database = require('better-sqlite3');
-const fs = require('fs');
-const path = require('path');
+const mysql = require('mysql2/promise');
 const logger = require('../utils/logger');
 
-const ensureDirectory = (filePath) => {
-  const dir = path.dirname(filePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
+const createDatabaseConnection = async (config) => {
+  const { host, port, user, password, name, connectionLimit } = config;
 
-const createDatabaseConnection = (config) => {
-  ensureDirectory(config.path);
-  const db = new Database(config.path);
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
-  logger.info('Database connection established', { path: config.path });
-  return db;
+  const baseConfig = {
+    host,
+    port,
+    user,
+    password,
+    multipleStatements: true,
+    timezone: 'Z',
+    dateStrings: true
+  };
+
+  const connection = await mysql.createConnection(baseConfig);
+  await connection.query(
+    `CREATE DATABASE IF NOT EXISTS \`${name}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+  );
+  await connection.end();
+
+  const pool = mysql.createPool({
+    ...baseConfig,
+    database: name,
+    waitForConnections: true,
+    connectionLimit: connectionLimit || 10,
+    namedPlaceholders: true
+  });
+
+  logger.info('MySQL connection pool established', { host, database: name });
+  return pool;
 };
 
 module.exports = { createDatabaseConnection };

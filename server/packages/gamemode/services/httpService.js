@@ -47,15 +47,19 @@ const startHttpServer = async ({ config, services, repositories }) => {
     return null;
   };
 
-  const requireAuth = (req, res, next) => {
+  const requireAuth = async (req, res, next) => {
     const token = extractToken(req);
-    const user = services.panel.verifyToken(token);
-    if (!token || !user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    try {
+      const user = await services.panel.verifyToken(token);
+      if (!token || !user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      req.user = user;
+      req.token = token;
+      return next();
+    } catch (error) {
+      return next(error);
     }
-    req.user = user;
-    req.token = token;
-    return next();
   };
 
   app.post('/api/auth/login', async (req, res) => {
@@ -68,39 +72,43 @@ const startHttpServer = async ({ config, services, repositories }) => {
     }
   });
 
-  app.post('/api/auth/logout', requireAuth, (req, res) => {
-    services.panel.logout(req.token);
+  app.post('/api/auth/logout', requireAuth, async (req, res) => {
+    await services.panel.logout(req.token);
     res.json({ success: true });
   });
 
-  app.get('/api/dashboard', requireAuth, (req, res) => {
-    res.json(services.panel.getDashboardData());
+  app.get('/api/dashboard', requireAuth, async (req, res) => {
+    const data = await services.panel.getDashboardData();
+    res.json(data);
   });
 
-  app.get('/api/players', requireAuth, (req, res) => {
-    res.json({ players: services.panel.listPlayers() });
+  app.get('/api/players', requireAuth, async (req, res) => {
+    const players = await services.panel.listPlayers();
+    res.json({ players });
   });
 
-  app.get('/api/chat/recent', requireAuth, (req, res) => {
-    res.json({ messages: services.chat.getRecent(100) });
+  app.get('/api/chat/recent', requireAuth, async (req, res) => {
+    const messages = await services.chat.getRecent(100);
+    res.json({ messages });
   });
 
-  app.get('/api/activity', requireAuth, (req, res) => {
-    res.json({ activity: repositories.activity.list(100) });
+  app.get('/api/activity', requireAuth, async (req, res) => {
+    const activity = await repositories.activity.list(100);
+    res.json({ activity });
   });
 
-  app.get('/api/inventory/:playerId', requireAuth, (req, res) => {
-    const items = services.inventory.getInventoryByPlayerId(req.params.playerId);
+  app.get('/api/inventory/:playerId', requireAuth, async (req, res) => {
+    const items = await services.inventory.getInventoryByPlayerId(req.params.playerId);
     res.json({ items });
   });
 
-  app.post('/api/inventory/grant', requireAuth, (req, res) => {
+  app.post('/api/inventory/grant', requireAuth, async (req, res) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Insufficient permissions' });
     }
     const { playerId, itemCode, label, quantity, metadata } = req.body;
     try {
-      const item = services.inventory.addItemByPlayerId({
+      const item = await services.inventory.addItemByPlayerId({
         playerId,
         itemCode,
         label: label || itemCode,
@@ -108,7 +116,7 @@ const startHttpServer = async ({ config, services, repositories }) => {
         stackable: true,
         metadata
       });
-      repositories.activity.log({
+      await repositories.activity.log({
         type: 'inventory.grant',
         actorId: req.user.id,
         payload: { playerId, itemCode, quantity }
@@ -121,17 +129,22 @@ const startHttpServer = async ({ config, services, repositories }) => {
 
   io.use((socket, next) => {
     const token = socket.handshake.auth && socket.handshake.auth.token;
-    const user = services.panel.verifyToken(token);
-    if (!token || !user) {
-      return next(new Error('Unauthorized'));
-    }
-    socket.user = user;
-    return next();
+    services.panel
+      .verifyToken(token)
+      .then((user) => {
+        if (!token || !user) {
+          return next(new Error('Unauthorized'));
+        }
+        socket.user = user;
+        return next();
+      })
+      .catch((error) => next(error));
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     logger.info('Admin panel socket connected', { username: socket.user.username });
-    socket.emit('init', services.panel.getDashboardData());
+    const dashboardData = await services.panel.getDashboardData();
+    socket.emit('init', dashboardData);
 
     socket.on('disconnect', () => {
       logger.info('Admin panel socket disconnected', { username: socket.user.username });

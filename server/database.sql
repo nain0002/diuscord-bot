@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS `inventories` (
   `capacity`   INT         NOT NULL DEFAULT 20,
   `created_at` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `inventories_player_unique` (`player_id`),
   KEY `inventories_player_id_idx` (`player_id`),
   CONSTRAINT `inventories_player_fk`
     FOREIGN KEY (`player_id`) REFERENCES `players`(`id`)

@@ -8,11 +8,11 @@ const buildChatService = ({ repositories, state, eventBus }) => {
     mp.players.broadcast(formatted);
   };
 
-  const handlePlayerMessage = (player, message) => {
+  const handlePlayerMessage = async (player, message) => {
     const account = state.getAccount(player);
     const playerName = account ? account.username : player.name;
 
-    const payload = repositories.chat.logMessage({
+    const payload = await repositories.chat.logMessage({
       playerId: account ? account.id : null,
       message,
       channel: 'global'
@@ -25,7 +25,7 @@ const buildChatService = ({ repositories, state, eventBus }) => {
     return payload;
   };
 
-  const getRecent = (limit = 50) => repositories.chat.getRecent(limit);
+  const getRecent = async (limit = 50) => repositories.chat.getRecent(limit);
 
   return {
     broadcast,

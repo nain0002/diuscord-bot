@@ -8,16 +8,16 @@ const buildPanelService = ({ repositories, services, config, eventBus }) => {
     || 1000 * 60 * 60 * 24;
 
   const login = async ({ username, password }) => {
-    const player = repositories.players.getByUsername(username);
+    const player = await repositories.players.getByUsername(username);
     if (!player || player.role !== 'admin') {
       throw new Error('UNAUTHORIZED');
     }
 
     const authResult = await services.auth.login({ username, password });
-    repositories.panel.purgeExpired();
+    await repositories.panel.purgeExpired();
     const token = createToken();
     const expiresAt = new Date(Date.now() + sessionDuration).toISOString();
-    repositories.panel.createSession({ playerId: player.id, token, expiresAt });
+    await repositories.panel.createSession({ playerId: player.id, token, expiresAt });
     logger.info('Admin panel login', { username });
     if (eventBus) {
       eventBus.emit('panel:login', { username });
@@ -25,34 +25,34 @@ const buildPanelService = ({ repositories, services, config, eventBus }) => {
     return { token, user: authResult };
   };
 
-  const verifyToken = (token) => {
+  const verifyToken = async (token) => {
     if (!token) return null;
-    const session = repositories.panel.getByToken(token);
+    const session = await repositories.panel.getByToken(token);
     if (!session) return null;
     if (new Date(session.expires_at) <= new Date()) {
-      repositories.panel.deleteByToken(token);
+      await repositories.panel.deleteByToken(token);
       return null;
     }
-    const player = repositories.players.getById(session.player_id);
+    const player = await repositories.players.getById(session.player_id);
     if (!player || player.role !== 'admin') {
       return null;
     }
     return sanitizePlayer(player);
   };
 
-  const logout = (token) => {
+  const logout = async (token) => {
     if (token) {
-      repositories.panel.deleteByToken(token);
+      await repositories.panel.deleteByToken(token);
       if (eventBus) {
         eventBus.emit('panel:logout', { token });
       }
     }
   };
 
-  const getDashboardData = () => {
-    const players = services.auth.getAllPlayers();
-    const recentChat = services.chat.getRecent(20);
-    const activity = repositories.activity.list(50);
+  const getDashboardData = async () => {
+    const players = await services.auth.getAllPlayers();
+    const recentChat = await services.chat.getRecent(20);
+    const activity = await repositories.activity.list(50);
     return {
       players,
       recentChat,

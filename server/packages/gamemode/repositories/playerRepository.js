@@ -1,55 +1,78 @@
 const { customAlphabet } = require('nanoid');
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
 
-const playerRepository = (db) => {
-  const getByUsername = (username) =>
-    db.prepare('SELECT * FROM players WHERE LOWER(username) = LOWER(?)').get(username);
+const mapPlayer = (row) => {
+  if (!row) return null;
+  return {
+    ...row,
+    cash: row.cash != null ? Number(row.cash) : 0,
+    bank: row.bank != null ? Number(row.bank) : 0,
+    level: row.level != null ? Number(row.level) : 1,
+    last_position: row.last_position ? JSON.parse(row.last_position) : null
+  };
+};
 
-  const getById = (id) => db.prepare('SELECT * FROM players WHERE id = ?').get(id);
+const playerRepository = (pool) => {
+  const getByUsername = async (username) => {
+    const [rows] = await pool.query(
+      'SELECT * FROM players WHERE LOWER(username) = LOWER(?) LIMIT 1',
+      [username]
+    );
+    return mapPlayer(rows[0]);
+  };
 
-  const getAll = () => db.prepare('SELECT * FROM players ORDER BY created_at DESC').all();
+  const getById = async (id) => {
+    const [rows] = await pool.query('SELECT * FROM players WHERE id = ? LIMIT 1', [id]);
+    return mapPlayer(rows[0]);
+  };
 
-  const create = ({ username, passwordHash, email, socialClub, role }) => {
-    const now = new Date().toISOString();
+  const getAll = async () => {
+    const [rows] = await pool.query('SELECT * FROM players ORDER BY created_at DESC');
+    return rows.map(mapPlayer);
+  };
+
+  const create = async ({ username, passwordHash, email, socialClub, role }) => {
     const id = nanoid();
-    db.prepare(
-      `INSERT INTO players (id, username, password_hash, email, social_club, role, cash, bank, level, status, created_at, updated_at)
-       VALUES (@id, @username, @password_hash, @email, @social_club, @role, @cash, @bank, @level, @status, @created_at, @updated_at)`
-    ).run({
-      id,
-      username,
-      password_hash: passwordHash,
-      email: email || null,
-      social_club: socialClub || null,
-      role: role || 'player',
-      cash: 500,
-      bank: 0,
-      level: 1,
-      status: 'active',
-      created_at: now,
-      updated_at: now
-    });
+    await pool.query(
+      `INSERT INTO players
+        (id, username, password_hash, email, social_club, role, cash, bank, level, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW(), NOW())`,
+      [
+        id,
+        username,
+        passwordHash,
+        email || null,
+        socialClub || null,
+        role || 'player',
+        500,
+        0,
+        1
+      ]
+    );
     return getById(id);
   };
 
-  const updateLastLogin = (id) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE players SET last_login = ?, updated_at = ? WHERE id = ?').run(now, now, id);
+  const updateLastLogin = async (id) => {
+    await pool.query('UPDATE players SET last_login = NOW(), updated_at = NOW() WHERE id = ?', [id]);
   };
 
-  const updatePosition = (id, position) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE players SET last_position = ?, updated_at = ? WHERE id = ?').run(JSON.stringify(position), now, id);
+  const updatePosition = async (id, position) => {
+    await pool.query('UPDATE players SET last_position = ?, updated_at = NOW() WHERE id = ?', [
+      position ? JSON.stringify(position) : null,
+      id
+    ]);
   };
 
-  const updateFinancials = (id, { cash, bank }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE players SET cash = ?, bank = ?, updated_at = ? WHERE id = ?').run(cash, bank, now, id);
+  const updateFinancials = async (id, { cash, bank }) => {
+    await pool.query('UPDATE players SET cash = ?, bank = ?, updated_at = NOW() WHERE id = ?', [
+      cash,
+      bank,
+      id
+    ]);
   };
 
-  const promote = (id, role) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE players SET role = ?, updated_at = ? WHERE id = ?').run(role, now, id);
+  const promote = async (id, role) => {
+    await pool.query('UPDATE players SET role = ?, updated_at = NOW() WHERE id = ?', [role, id]);
   };
 
   return {

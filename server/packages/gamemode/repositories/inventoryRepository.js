@@ -1,89 +1,97 @@
 const { customAlphabet } = require('nanoid');
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
 
-const inventoryRepository = (db) => {
-  const getByPlayerId = (playerId) =>
-    db.prepare('SELECT * FROM inventories WHERE player_id = ?').get(playerId);
+const mapInventory = (row) => {
+  if (!row) return null;
+  return {
+    ...row,
+    capacity: row.capacity != null ? Number(row.capacity) : 0
+  };
+};
 
-  const createForPlayer = (playerId, capacity = 20) => {
+const mapItem = (item) => {
+  if (!item) return null;
+  return {
+    ...item,
+    quantity: item.quantity != null ? Number(item.quantity) : 0,
+    stackable: Boolean(item.stackable),
+    metadata: item.metadata ? JSON.parse(item.metadata) : null
+  };
+};
+
+const inventoryRepository = (pool) => {
+  const getByPlayerId = async (playerId) => {
+    const [rows] = await pool.query('SELECT * FROM inventories WHERE player_id = ? LIMIT 1', [playerId]);
+    return mapInventory(rows[0]);
+  };
+
+  const createForPlayer = async (playerId, capacity = 20) => {
     const id = nanoid();
-    const now = new Date().toISOString();
-    db.prepare(
+    await pool.query(
       `INSERT INTO inventories (id, player_id, capacity, created_at)
-       VALUES (@id, @player_id, @capacity, @created_at)`
-    ).run({
-      id,
-      player_id: playerId,
-      capacity,
-      created_at: now
-    });
+       VALUES (?, ?, ?, NOW())
+       ON DUPLICATE KEY UPDATE capacity = VALUES(capacity)`,
+      [id, playerId, capacity]
+    );
     return getByPlayerId(playerId);
   };
 
-  const listItems = (inventoryId) =>
-    db
-      .prepare('SELECT * FROM inventory_items WHERE inventory_id = ? ORDER BY created_at ASC')
-      .all(inventoryId)
-      .map((item) => ({
-        ...item,
-        quantity: Number(item.quantity),
-        stackable: Boolean(item.stackable),
-        metadata: item.metadata ? JSON.parse(item.metadata) : null
-      }));
+  const listItems = async (inventoryId) => {
+    const [rows] = await pool.query(
+      'SELECT * FROM inventory_items WHERE inventory_id = ? ORDER BY created_at ASC',
+      [inventoryId]
+    );
+    return rows.map(mapItem);
+  };
 
-  const addItem = ({ inventoryId, itemCode, label, quantity, stackable, metadata }) => {
-    const now = new Date().toISOString();
-    const existing = db
-      .prepare(
-        'SELECT * FROM inventory_items WHERE inventory_id = ? AND item_code = ? AND stackable = 1'
-      )
-      .get(inventoryId, itemCode);
+  const getItemById = async (id) => {
+    const [rows] = await pool.query('SELECT * FROM inventory_items WHERE id = ? LIMIT 1', [id]);
+    return mapItem(rows[0]);
+  };
 
-    if (existing && stackable) {
-      db.prepare('UPDATE inventory_items SET quantity = quantity + ?, updated_at = ? WHERE id = ?').run(
-        quantity,
-        now,
-        existing.id
+  const addItem = async ({ inventoryId, itemCode, label, quantity, stackable, metadata }) => {
+    if (stackable) {
+      const [existingRows] = await pool.query(
+        'SELECT * FROM inventory_items WHERE inventory_id = ? AND item_code = ? AND stackable = 1 LIMIT 1',
+        [inventoryId, itemCode]
       );
-      return getItemById(existing.id);
+      const existing = existingRows[0];
+      if (existing) {
+        await pool.query(
+          'UPDATE inventory_items SET quantity = quantity + ?, updated_at = NOW() WHERE id = ?',
+          [quantity, existing.id]
+        );
+        return getItemById(existing.id);
+      }
     }
 
     const id = nanoid();
-    db.prepare(
-      `INSERT INTO inventory_items (id, inventory_id, item_code, label, quantity, stackable, metadata, created_at, updated_at)
-       VALUES (@id, @inventory_id, @item_code, @label, @quantity, @stackable, @metadata, @created_at, @updated_at)`
-    ).run({
-      id,
-      inventory_id: inventoryId,
-      item_code: itemCode,
-      label,
-      quantity,
-      stackable: stackable ? 1 : 0,
-      metadata: metadata ? JSON.stringify(metadata) : null,
-      created_at: now,
-      updated_at: now
-    });
+    await pool.query(
+      `INSERT INTO inventory_items
+        (id, inventory_id, item_code, label, quantity, stackable, metadata, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      [
+        id,
+        inventoryId,
+        itemCode,
+        label,
+        quantity,
+        stackable ? 1 : 0,
+        metadata ? JSON.stringify(metadata) : null
+      ]
+    );
     return getItemById(id);
   };
 
-  const getItemById = (id) => {
-    const item = db.prepare('SELECT * FROM inventory_items WHERE id = ?').get(id);
-    if (!item) return null;
-    return {
-      ...item,
-      quantity: Number(item.quantity),
-      stackable: Boolean(item.stackable),
-      metadata: item.metadata ? JSON.parse(item.metadata) : null
-    };
+  const updateItemQuantity = async (id, quantity) => {
+    await pool.query('UPDATE inventory_items SET quantity = ?, updated_at = NOW() WHERE id = ?', [
+      quantity,
+      id
+    ]);
   };
 
-  const updateItemQuantity = (id, quantity) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE inventory_items SET quantity = ?, updated_at = ? WHERE id = ?').run(quantity, now, id);
-  };
-
-  const removeItem = (id) => {
-    db.prepare('DELETE FROM inventory_items WHERE id = ?').run(id);
+  const removeItem = async (id) => {
+    await pool.query('DELETE FROM inventory_items WHERE id = ?', [id]);
   };
 
   return {

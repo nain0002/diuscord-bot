@@ -4,12 +4,12 @@ const chatRepositoryFactory = require('./chatRepository');
 const activityRepositoryFactory = require('./activityRepository');
 const panelRepositoryFactory = require('./panelRepository');
 
-const buildRepositories = (db) => ({
-  players: playerRepositoryFactory(db),
-  inventories: inventoryRepositoryFactory(db),
-  chat: chatRepositoryFactory(db),
-  activity: activityRepositoryFactory(db),
-  panel: panelRepositoryFactory(db)
+const buildRepositories = (pool) => ({
+  players: playerRepositoryFactory(pool),
+  inventories: inventoryRepositoryFactory(pool),
+  chat: chatRepositoryFactory(pool),
+  activity: activityRepositoryFactory(pool),
+  panel: panelRepositoryFactory(pool)
 });
 
 module.exports = { buildRepositories };

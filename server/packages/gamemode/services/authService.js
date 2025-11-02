@@ -18,26 +18,26 @@ const sanitizePlayer = (player) => {
 
 const buildAuthService = ({ repositories }) => {
   const register = async ({ username, password, email, socialClub }) => {
-    const existing = repositories.players.getByUsername(username);
+    const existing = await repositories.players.getByUsername(username);
     if (existing) {
       throw new Error('USERNAME_TAKEN');
     }
 
     const passwordHash = await hashPassword(password);
-    const player = repositories.players.create({
+    const player = await repositories.players.create({
       username,
       passwordHash,
       email,
       socialClub,
       role: 'player'
     });
-    repositories.inventories.createForPlayer(player.id);
+    await repositories.inventories.createForPlayer(player.id);
     logger.info('New player registered', { username });
     return sanitizePlayer(player);
   };
 
   const login = async ({ username, password }) => {
-    const player = repositories.players.getByUsername(username);
+    const player = await repositories.players.getByUsername(username);
     if (!player) {
       throw new Error('PLAYER_NOT_FOUND');
     }
@@ -47,18 +47,21 @@ const buildAuthService = ({ repositories }) => {
       throw new Error('INVALID_PASSWORD');
     }
 
-    repositories.players.updateLastLogin(player.id);
+    await repositories.players.updateLastLogin(player.id);
 
-    const inventory = repositories.inventories.getByPlayerId(player.id);
+    const inventory = await repositories.inventories.getByPlayerId(player.id);
     if (!inventory) {
-      repositories.inventories.createForPlayer(player.id);
+      await repositories.inventories.createForPlayer(player.id);
     }
 
     logger.info('Player logged in', { username });
     return sanitizePlayer({ ...player, last_login: new Date().toISOString() });
   };
 
-  const getAllPlayers = () => repositories.players.getAll().map(sanitizePlayer);
+  const getAllPlayers = async () => {
+    const players = await repositories.players.getAll();
+    return players.map(sanitizePlayer);
+  };
 
   return {
     register,

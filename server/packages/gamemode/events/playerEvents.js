@@ -21,10 +21,14 @@ const registerPlayerEvents = ({ repositories, services }) => {
     player.outputChatBox('!{#44ff44}Welcome to the Advanced Rage Multiplayer server!');
   });
 
-  mp.events.add('playerQuit', (player, exitType, reason) => {
+  mp.events.add('playerQuit', async (player, exitType, reason) => {
     const account = services.state.getAccount(player);
     if (account) {
-      repositories.players.updatePosition(account.id, toSerializablePosition(player.position));
+      try {
+        await repositories.players.updatePosition(account.id, toSerializablePosition(player.position));
+      } catch (error) {
+        logger.error('Failed to persist player position on quit', { error: error.message });
+      }
       services.state.detach(player);
     }
     logger.info('Player disconnected', { name: player.name, exitType, reason });
@@ -40,7 +44,9 @@ const registerPlayerEvents = ({ repositories, services }) => {
     if (trimmed.startsWith('/')) {
       return;
     }
-    services.chat.handlePlayerMessage(player, trimmed);
+    services.chat
+      .handlePlayerMessage(player, trimmed)
+      .catch((error) => logger.error('Failed to handle chat message', { error: error.message }));
   });
 };
 

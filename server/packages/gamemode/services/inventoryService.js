@@ -1,19 +1,19 @@
 const logger = require('../utils/logger');
 
 const buildInventoryService = ({ repositories, state, eventBus }) => {
-  const ensureInventory = (playerId) => {
-    let inventory = repositories.inventories.getByPlayerId(playerId);
+  const ensureInventory = async (playerId) => {
+    let inventory = await repositories.inventories.getByPlayerId(playerId);
     if (!inventory) {
-      inventory = repositories.inventories.createForPlayer(playerId);
+      inventory = await repositories.inventories.createForPlayer(playerId);
     }
     return inventory;
   };
 
-  const getInventory = (player) => {
+  const getInventory = async (player) => {
     const account = state.getAccount(player);
     if (!account) return [];
-    const inventory = ensureInventory(account.id);
-    const items = repositories.inventories.listItems(inventory.id);
+    const inventory = await ensureInventory(account.id);
+    const items = await repositories.inventories.listItems(inventory.id);
     state.setInventory(player, items);
     return items;
   };
@@ -28,17 +28,17 @@ const buildInventoryService = ({ repositories, state, eventBus }) => {
     return items.length < inventoryRecord.capacity;
   };
 
-  const addItem = ({ player, itemCode, label, quantity = 1, stackable = true, metadata }) => {
+  const addItem = async ({ player, itemCode, label, quantity = 1, stackable = true, metadata }) => {
     const account = state.getAccount(player);
     if (!account) {
       throw new Error('PLAYER_NOT_AUTHENTICATED');
     }
-    const inventory = ensureInventory(account.id);
-    const items = repositories.inventories.listItems(inventory.id);
+    const inventory = await ensureInventory(account.id);
+    const items = await repositories.inventories.listItems(inventory.id);
     if (!canAddItem(inventory, stackable, items, itemCode)) {
       throw new Error('INVENTORY_FULL');
     }
-    const item = repositories.inventories.addItem({
+    const item = await repositories.inventories.addItem({
       inventoryId: inventory.id,
       itemCode,
       label,
@@ -47,7 +47,7 @@ const buildInventoryService = ({ repositories, state, eventBus }) => {
       metadata
     });
     logger.info('Item added to inventory', { player: account.username, itemCode });
-    const updatedItems = repositories.inventories.listItems(inventory.id);
+    const updatedItems = await repositories.inventories.listItems(inventory.id);
     state.setInventory(player, updatedItems);
     if (eventBus) {
       eventBus.emit('inventory:update', { playerId: account.id, items: updatedItems });
@@ -55,13 +55,13 @@ const buildInventoryService = ({ repositories, state, eventBus }) => {
     return item;
   };
 
-  const addItemByPlayerId = ({ playerId, itemCode, label, quantity = 1, stackable = true, metadata }) => {
-    const inventory = ensureInventory(playerId);
-    const items = repositories.inventories.listItems(inventory.id);
+  const addItemByPlayerId = async ({ playerId, itemCode, label, quantity = 1, stackable = true, metadata }) => {
+    const inventory = await ensureInventory(playerId);
+    const items = await repositories.inventories.listItems(inventory.id);
     if (!canAddItem(inventory, stackable, items, itemCode)) {
       throw new Error('INVENTORY_FULL');
     }
-    const item = repositories.inventories.addItem({
+    const item = await repositories.inventories.addItem({
       inventoryId: inventory.id,
       itemCode,
       label,
@@ -69,26 +69,27 @@ const buildInventoryService = ({ repositories, state, eventBus }) => {
       stackable,
       metadata
     });
-    const updatedItems = repositories.inventories.listItems(inventory.id);
+    const updatedItems = await repositories.inventories.listItems(inventory.id);
     if (eventBus) {
       eventBus.emit('inventory:update', { playerId, items: updatedItems });
     }
     return item;
   };
 
-  const getInventoryByPlayerId = (playerId) => {
-    const inventory = ensureInventory(playerId);
-    return repositories.inventories.listItems(inventory.id);
+  const getInventoryByPlayerId = async (playerId) => {
+    const inventory = await ensureInventory(playerId);
+    const items = await repositories.inventories.listItems(inventory.id);
+    return items;
   };
 
-  const removeItem = ({ player, itemId }) => {
+  const removeItem = async ({ player, itemId }) => {
     const account = state.getAccount(player);
     if (!account) {
       throw new Error('PLAYER_NOT_AUTHENTICATED');
     }
-    const inventory = ensureInventory(account.id);
-    repositories.inventories.removeItem(itemId);
-    const items = repositories.inventories.listItems(inventory.id);
+    const inventory = await ensureInventory(account.id);
+    await repositories.inventories.removeItem(itemId);
+    const items = await repositories.inventories.listItems(inventory.id);
     state.setInventory(player, items);
     if (eventBus) {
       eventBus.emit('inventory:update', { playerId: account.id, items });
@@ -96,18 +97,18 @@ const buildInventoryService = ({ repositories, state, eventBus }) => {
     return items;
   };
 
-  const updateQuantity = ({ player, itemId, quantity }) => {
+  const updateQuantity = async ({ player, itemId, quantity }) => {
     const account = state.getAccount(player);
     if (!account) {
       throw new Error('PLAYER_NOT_AUTHENTICATED');
     }
-    const inventory = ensureInventory(account.id);
+    const inventory = await ensureInventory(account.id);
     if (quantity <= 0) {
-      repositories.inventories.removeItem(itemId);
+      await repositories.inventories.removeItem(itemId);
     } else {
-      repositories.inventories.updateItemQuantity(itemId, quantity);
+      await repositories.inventories.updateItemQuantity(itemId, quantity);
     }
-    const items = repositories.inventories.listItems(inventory.id);
+    const items = await repositories.inventories.listItems(inventory.id);
     state.setInventory(player, items);
     if (eventBus) {
       eventBus.emit('inventory:update', { playerId: account.id, items });

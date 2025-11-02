@@ -3,7 +3,7 @@
 This repository contains an **end-to-end advanced RageMP server stack** featuring:
 
 - Account registration & secure login (server + CEF UI)
-- Persistent SQLite database with migration + default admin
+- Persistent MySQL database (phpMyAdmin friendly) with migration + default admin
 - Inventory system with stacking, admin grants and in-game UI (`I` key)
 - Enhanced chat logging with command filtering and admin dashboard feeds
 - Real-time admin control panel (Express + Socket.IO) with live metrics
@@ -43,10 +43,15 @@ server/
 
 5. Access the admin panel at `http://localhost:3001` (default credentials: `admin` / `admin123`).
 
+> **MySQL setup**
+> - Create a database user with privileges on your target schema (default name `rage_server`).
+> - Import `server/database.sql` through phpMyAdmin or let the server bootstrap apply it automatically.
+> - Update `.env` with the same credentials the user can use from phpMyAdmin/localhost.
+
 ## Gameplay Features
 
 - **Registration/Login**: Players receive a polished CEF portal on connect. Credentials travel securely to the server where passwords are hashed with bcrypt.
-- **Inventory**: Items persist in SQLite, support stacking rules, are manageable in-game via the `I` key, and are observable live from the admin panel.
+- **Inventory**: Items persist in MySQL, support stacking rules, are manageable in-game via the `I` key, and are observable live from the admin panel.
 - **Chat**: Global chat is captured, filtered from commands, and mirrored into the control center for moderation.
 - **Commands**:
   - `/register [username] [password]`
@@ -65,6 +70,7 @@ server/
 
 - Set `MP_MOCK=true` when running `node packages/gamemode/index.js` outside RageMP to leverage a lightweight mock `mp` object for local service testing.
 - All services use a dependency-injected container, making it straightforward to extend gameplay systems, plug in new repositories, or expose additional admin APIs.
+- MySQL credentials are pulled from `.env`; the server will auto-create the database (if permissions allow) and execute `database.sql` on startup.
 
 ## Default Admin Account
 

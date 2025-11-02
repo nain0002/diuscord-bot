@@ -3,13 +3,13 @@ const { getMp } = require('../utils/mp');
 const registerInventoryCommands = ({ services }) => {
   const mp = getMp();
 
-  mp.events.addCommand('inv', (player) => {
+  mp.events.addCommand('inv', async (player) => {
     const account = services.state.getAccount(player);
     if (!account) {
       player.outputChatBox('!{#ff4444}You must be logged in to view your inventory.');
       return;
     }
-    const items = services.inventory.getInventory(player);
+    const items = await services.inventory.getInventory(player);
     if (!items || items.length === 0) {
       player.outputChatBox('!{#cccccc}Your inventory is empty.');
       return;
@@ -20,7 +20,7 @@ const registerInventoryCommands = ({ services }) => {
     });
   });
 
-  mp.events.addCommand('giveitem', (player, fullText) => {
+  mp.events.addCommand('giveitem', async (player, fullText) => {
     const account = services.state.getAccount(player);
     if (!account || account.role !== 'admin') {
       player.outputChatBox('!{#ff4444}You do not have permission to use this command.');
@@ -44,7 +44,7 @@ const registerInventoryCommands = ({ services }) => {
       return;
     }
     try {
-      const item = services.inventory.addItem({
+      const item = await services.inventory.addItem({
         player: target,
         itemCode,
         label: itemCode,
