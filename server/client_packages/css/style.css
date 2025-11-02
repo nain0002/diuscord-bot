@@ -1,0 +1,230 @@
+:root {
+  color-scheme: dark;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  --bg: rgba(12, 17, 23, 0.92);
+  --accent: #4ade80;
+  --accent-strong: #22c55e;
+  --danger: #f87171;
+  --surface: rgba(31, 41, 55, 0.9);
+  --border: rgba(148, 163, 184, 0.2);
+  --text: #f8fafc;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  color: var(--text);
+  user-select: none;
+}
+
+.app {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, rgba(34, 197, 94, 0.12), transparent 60%);
+}
+
+.panel {
+  width: 600px;
+  background: var(--bg);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  position: relative;
+}
+
+.panel-header {
+  padding: 32px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.35), rgba(129, 140, 248, 0.2));
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-header h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: 0.02em;
+}
+
+.panel-header span {
+  opacity: 0.7;
+  font-size: 14px;
+}
+
+.panel-body {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tab-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 6px;
+  border-radius: 12px;
+}
+
+.tab-switcher button {
+  border: none;
+  background: transparent;
+  color: #cbd5f5;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tab-switcher button.active {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+form {
+  display: grid;
+  gap: 14px;
+}
+
+label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+input {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: var(--text);
+}
+
+input:focus {
+  outline: 2px solid rgba(34, 197, 94, 0.45);
+  border-color: transparent;
+}
+
+.btn-primary,
+.btn-secondary {
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #041105;
+  box-shadow: 0 10px 20px -8px rgba(34, 197, 94, 0.45);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: rgba(148, 163, 184, 0.15);
+  color: #e2e8f0;
+}
+
+.message {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  color: var(--accent);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.message.error {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.35);
+  color: var(--danger);
+}
+
+.inventory-overlay {
+  width: 860px;
+  max-width: 90vw;
+  background: var(--bg);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.65);
+  padding: 26px;
+}
+
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.inventory-card {
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border 0.2s ease, transform 0.2s ease;
+}
+
+.inventory-card:hover {
+  border-color: rgba(34, 197, 94, 0.4);
+  transform: translateY(-2px);
+}
+
+.inventory-card h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.inventory-card span {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.inventory-card button {
+  margin-top: auto;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: rgba(34, 197, 94, 0.18);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hidden {
+  display: none !important;
+}

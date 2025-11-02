@@ -1,0 +1,18 @@
+{
+  "maxplayers": 100,
+  "name": "Advanced RageMP Server",
+  "gamemode": "AdvancedRP",
+  "stream-distance": 500.0,
+  "announce": false,
+  "csharp": "disabled",
+  "port": 22005,
+  "bind": "0.0.0.0",
+  "allow-cef-debugging": true,
+  "resources": [
+    "gamemode"
+  ],
+  "voice-chat": {
+    "enabled": false
+  },
+  "log-level": "info"
+}

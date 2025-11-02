@@ -1,0 +1,20 @@
+{
+  "name": "rage-advanced-server",
+  "version": "1.0.0",
+  "description": "Advanced Rage Multiplayer server with registration, inventory, chat, and admin panel",
+  "main": "packages/gamemode/index.js",
+  "scripts": {
+    "start": "node packages/gamemode/index.js",
+    "admin": "node packages/gamemode/services/httpService.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.0.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "nanoid": "^5.0.7",
+    "socket.io": "^4.7.5"
+  }
+}

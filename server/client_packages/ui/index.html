@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced RageMP UI</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <script defer src="../src/ui.js"></script>
+  </head>
+  <body>
+    <div id="auth-root" class="app">
+      <div class="panel" id="auth-panel">
+        <div class="panel-header">
+          <span id="welcome-subtitle">WELCOME BACK</span>
+          <h1>Advanced City Portal</h1>
+        </div>
+        <div class="panel-body">
+          <div class="tab-switcher">
+            <button class="active" data-tab="login">Login</button>
+            <button data-tab="register">Register</button>
+          </div>
+
+          <div id="message-container" class="message hidden"></div>
+
+          <form id="login-form" autocomplete="off">
+            <div>
+              <label for="login-username">Username</label>
+              <input id="login-username" name="username" placeholder="Your username" required />
+            </div>
+            <div>
+              <label for="login-password">Password</label>
+              <input id="login-password" type="password" name="password" placeholder="????????" required />
+            </div>
+            <button type="submit" class="btn-primary">Enter City</button>
+          </form>
+
+          <form id="register-form" class="hidden" autocomplete="off">
+            <div>
+              <label for="register-username">Username</label>
+              <input id="register-username" name="username" placeholder="Choose a hero name" required />
+            </div>
+            <div>
+              <label for="register-password">Password</label>
+              <input id="register-password" type="password" name="password" placeholder="Create a password" required />
+            </div>
+            <div>
+              <label for="register-email">Email (optional)</label>
+              <input id="register-email" name="email" type="email" placeholder="you@example.com" />
+            </div>
+            <button type="submit" class="btn-primary">Create Account</button>
+            <button type="button" class="btn-secondary" id="back-to-login">Back</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="inventory-backdrop" class="overlay-backdrop hidden">
+      <div class="inventory-overlay">
+        <div class="inventory-header">
+          <div>
+            <h2 style="margin:0;">Inventory</h2>
+            <span style="opacity:0.7; font-size:13px;">Manage the gear that defines your journey</span>
+          </div>
+          <button class="btn-secondary" id="inventory-close">Close</button>
+        </div>
+        <div id="inventory-empty" class="message hidden">Your pockets are empty. Explore the city to find items!</div>
+        <div id="inventory-grid" class="inventory-grid"></div>
+      </div>
+    </div>
+  </body>
+</html>
