@@ -4,8 +4,10 @@ const logger = require('../utils/logger');
 const createDatabaseConnection = async (config) => {
   const { host, port, user, password, name, connectionLimit } = config;
 
+  const resolvedHost = host || 'localhost';
+
   const baseConfig = {
-    host,
+    host: resolvedHost,
     port,
     user,
     password,
