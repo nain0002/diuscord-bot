@@ -1,5 +1,6 @@
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
+const { generateId } = require('../utils/id');
+
+const createId = () => generateId(16);
 
 const mapPlayer = (row) => {
   if (!row) return null;
@@ -32,7 +33,7 @@ const playerRepository = (pool) => {
   };
 
   const create = async ({ username, passwordHash, email, socialClub, role }) => {
-    const id = nanoid();
+    const id = createId();
     await pool.query(
       `INSERT INTO players
         (id, username, password_hash, email, social_club, role, cash, bank, level, status, created_at, updated_at)

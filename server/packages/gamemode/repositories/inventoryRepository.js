@@ -1,5 +1,6 @@
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
+const { generateId } = require('../utils/id');
+
+const createId = () => generateId(16);
 
 const mapInventory = (row) => {
   if (!row) return null;
@@ -26,7 +27,7 @@ const inventoryRepository = (pool) => {
   };
 
   const createForPlayer = async (playerId, capacity = 20) => {
-    const id = nanoid();
+    const id = createId();
     await pool.query(
       `INSERT INTO inventories (id, player_id, capacity, created_at)
        VALUES (?, ?, ?, NOW())
@@ -65,7 +66,7 @@ const inventoryRepository = (pool) => {
       }
     }
 
-    const id = nanoid();
+    const id = createId();
     await pool.query(
       `INSERT INTO inventory_items
         (id, inventory_id, item_code, label, quantity, stackable, metadata, created_at, updated_at)

@@ -1,5 +1,4 @@
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
+const { generateId } = require('../utils/id');
 
 const mapPlayerJob = (row) => {
   if (!row) return null;
@@ -24,7 +23,7 @@ const jobRepository = (pool) => {
     if (active) {
       return mapPlayerJob(active);
     }
-    const id = nanoid();
+    const id = generateId(16);
     await pool.query(
       `INSERT INTO player_jobs (id, player_id, job_code, status, progress, payload, started_at, updated_at)
        VALUES (?, ?, ?, 'active', 0, ?, NOW(), NOW())`,

@@ -1,5 +1,4 @@
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
+const { generateId } = require('../utils/id');
 const { getMp } = require('../utils/mp');
 const logger = require('../utils/logger');
 
@@ -43,7 +42,7 @@ const buildTerritoryService = ({ config, repositories, services, eventBus }) => 
       return { error: 'NOT_IN_TERRITORY' };
     }
 
-    const captureId = nanoid();
+    const captureId = generateId(16);
     const duration = (definition.captureTime || 120) * 1000;
 
     logger.info('Territory capture started', {

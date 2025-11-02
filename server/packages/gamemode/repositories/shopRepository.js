@@ -1,12 +1,11 @@
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
+const { generateId } = require('../utils/id');
 
 const shopRepository = (pool) => {
   const logPurchase = async ({ playerId, shopCode, itemCode, itemLabel, quantity, price }) => {
     await pool.query(
       `INSERT INTO shop_transactions (id, player_id, shop_code, item_code, item_label, quantity, price, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [nanoid(), playerId, shopCode, itemCode, itemLabel, quantity, price]
+      [generateId(16), playerId, shopCode, itemCode, itemLabel, quantity, price]
     );
   };
 

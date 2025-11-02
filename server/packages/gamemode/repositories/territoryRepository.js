@@ -1,5 +1,4 @@
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
+const { generateId } = require('../utils/id');
 
 const mapTerritory = (row) => {
   if (!row) return null;
@@ -26,7 +25,7 @@ const territoryRepository = (pool) => {
         await pool.query(
           `INSERT INTO territories (id, code, name, reward_cash, capture_time, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
-          [nanoid(), def.code, def.name, def.rewardCash || 0, def.captureTime || 120]
+          [generateId(16), def.code, def.name, def.rewardCash || 0, def.captureTime || 120]
         );
       } else {
         await pool.query(
@@ -56,7 +55,7 @@ const territoryRepository = (pool) => {
     await pool.query(
       `INSERT INTO territory_control_logs (id, territory_id, winner_player_id, winner_name, reward_cash)
        VALUES (?, ?, ?, ?, ?)`
-      , [nanoid(), territory.id, playerId || null, playerName || null, territory.reward_cash || 0]
+      , [generateId(16), territory.id, playerId || null, playerName || null, territory.reward_cash || 0]
     );
 
     return territory;

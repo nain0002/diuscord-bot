@@ -1,9 +1,8 @@
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
+const { generateId } = require('../utils/id');
 
 const chatRepository = (pool) => {
   const logMessage = async ({ playerId, message, channel }) => {
-    const id = nanoid();
+    const id = generateId(16);
     await pool.query(
       `INSERT INTO chat_messages (id, player_id, message, channel, created_at)
        VALUES (?, ?, ?, ?, NOW())`,

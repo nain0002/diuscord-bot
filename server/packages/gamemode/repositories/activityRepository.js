@@ -1,9 +1,8 @@
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 16);
+const { generateId } = require('../utils/id');
 
 const activityRepository = (pool) => {
   const log = async ({ type, actorId, payload }) => {
-    const id = nanoid();
+    const id = generateId(16);
     await pool.query(
       `INSERT INTO activity_logs (id, type, actor_id, payload, created_at)
        VALUES (?, ?, ?, ?, NOW())`,

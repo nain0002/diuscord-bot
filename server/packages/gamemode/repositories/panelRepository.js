@@ -1,9 +1,8 @@
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 24);
+const { generateId } = require('../utils/id');
 
 const panelRepository = (pool) => {
   const createSession = async ({ playerId, token, expiresAt }) => {
-    const id = nanoid();
+    const id = generateId(24);
     await pool.query(
       `INSERT INTO panel_sessions (id, player_id, token, expires_at, created_at)
        VALUES (?, ?, ?, ?, NOW())`,
