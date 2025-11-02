@@ -122,6 +122,84 @@ CREATE TABLE IF NOT EXISTS `panel_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
+-- Territories and Control Logs
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `territories` (
+  `id`              VARCHAR(16)  NOT NULL,
+  `code`            VARCHAR(64)  NOT NULL,
+  `name`            VARCHAR(128) NOT NULL,
+  `owner_player_id` VARCHAR(16)  DEFAULT NULL,
+  `owner_name`      VARCHAR(64)  DEFAULT NULL,
+  `reward_cash`     INT          NOT NULL DEFAULT 0,
+  `capture_time`    INT          NOT NULL DEFAULT 120,
+  `last_capture_at` DATETIME     DEFAULT NULL,
+  `created_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `territories_code_unique` (`code`),
+  KEY `territories_owner_idx` (`owner_player_id`),
+  CONSTRAINT `territories_owner_fk`
+    FOREIGN KEY (`owner_player_id`) REFERENCES `players` (`id`)
+    ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `territory_control_logs` (
+  `id`         VARCHAR(16) NOT NULL,
+  `territory_id` VARCHAR(16) NOT NULL,
+  `winner_player_id` VARCHAR(16) DEFAULT NULL,
+  `winner_name` VARCHAR(64) DEFAULT NULL,
+  `reward_cash` INT NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `territory_logs_territory_idx` (`territory_id`),
+  CONSTRAINT `territory_logs_territory_fk`
+    FOREIGN KEY (`territory_id`) REFERENCES `territories` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- Jobs and Player Job States
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `player_jobs` (
+  `id`          VARCHAR(16) NOT NULL,
+  `player_id`   VARCHAR(16) NOT NULL,
+  `job_code`    VARCHAR(64) NOT NULL,
+  `status`      ENUM('active','completed','failed') NOT NULL DEFAULT 'active',
+  `progress`    INT NOT NULL DEFAULT 0,
+  `payload`     JSON DEFAULT NULL,
+  `started_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `completed_at` DATETIME DEFAULT NULL,
+  `updated_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `player_jobs_player_idx` (`player_id`),
+  KEY `player_jobs_status_idx` (`status`),
+  KEY `player_jobs_job_code_idx` (`job_code`),
+  CONSTRAINT `player_jobs_player_fk`
+    FOREIGN KEY (`player_id`) REFERENCES `players` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- Shop Transactions
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `shop_transactions` (
+  `id`         VARCHAR(16) NOT NULL,
+  `player_id`  VARCHAR(16) NOT NULL,
+  `shop_code`  VARCHAR(64) NOT NULL,
+  `item_code`  VARCHAR(64) NOT NULL,
+  `item_label` VARCHAR(128) NOT NULL,
+  `quantity`   INT         NOT NULL,
+  `price`      INT         NOT NULL,
+  `created_at` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `shop_transactions_player_idx` (`player_id`),
+  KEY `shop_transactions_shop_idx` (`shop_code`),
+  CONSTRAINT `shop_transactions_player_fk`
+    FOREIGN KEY (`player_id`) REFERENCES `players` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
 -- Default Administrator Seed (username: admin / password: admin123)
 -- ------------------------------------------------------------
 INSERT INTO `players` (`id`, `social_club`, `username`, `password_hash`, `email`, `cash`, `bank`, `level`, `role`, `status`, `last_position`, `created_at`, `updated_at`, `last_login`)

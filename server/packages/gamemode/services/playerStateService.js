@@ -32,6 +32,15 @@ const buildPlayerStateService = () => {
     return state ? state.account : null;
   };
 
+  const updateAccount = (player, account) => {
+    const state = players.get(player.id);
+    if (state) {
+      state.account = { ...state.account, ...account };
+      return state.account;
+    }
+    return null;
+  };
+
   const getState = (player) => players.get(player.id);
 
   const updateData = (player, patch) => {
@@ -49,6 +58,7 @@ const buildPlayerStateService = () => {
     setInventory,
     getInventory,
     getAccount,
+    updateAccount,
     getState,
     updateData
   };

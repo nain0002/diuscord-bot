@@ -16,7 +16,7 @@ const registerPlayerEvents = ({ repositories, services }) => {
 
   mp.events.add('playerJoin', (player) => {
     logger.info('Player connected', { name: player.name, socialClub: player.socialClubName });
-    player.spawn(new mp.Vector3(-425.517, 1123.620, 325.854));
+    services.freeroam.spawnPlayer(player);
     player.call('ui:showAuth', [player.name]);
     player.outputChatBox('!{#44ff44}Welcome to the Advanced Rage Multiplayer server!');
   });
@@ -29,6 +29,8 @@ const registerPlayerEvents = ({ repositories, services }) => {
       } catch (error) {
         logger.error('Failed to persist player position on quit', { error: error.message });
       }
+      services.territories.cancelCapturesByPlayer(account.id);
+      await services.jobs.abandonJob({ account });
       services.state.detach(player);
     }
     logger.info('Player disconnected', { name: player.name, exitType, reason });
@@ -36,6 +38,10 @@ const registerPlayerEvents = ({ repositories, services }) => {
 
   mp.events.add('playerReady', (player) => {
     player.call('ui:syncSkin');
+  });
+
+  mp.events.add('playerDeath', (player) => {
+    services.freeroam.handleRespawn(player);
   });
 
   mp.events.add('playerChat', (player, message) => {

@@ -1,3 +1,5 @@
+require('./src/gameplay');
+
 const UI_URL = 'package://client_packages/ui/index.html';
 
 let uiBrowser = null;

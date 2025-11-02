@@ -52,16 +52,23 @@ server/
 
 - **Registration/Login**: Players receive a polished CEF portal on connect. Credentials travel securely to the server where passwords are hashed with bcrypt.
 - **Inventory**: Items persist in MySQL, support stacking rules, are manageable in-game via the `I` key, and are observable live from the admin panel.
+- **Freeroam Gameplay**: Randomized spawn manager, basic respawn logic, dynamic map blips/markers for hotspots and services.
+- **Shops**: Convenience/weapons stores with purchasable items (`/shops`, `/buy [shopCode] [itemCode]`).
+- **Jobs**: Courier and taxi job loops with checkpoints, rewards, and `/jobstart`, `/jobstop` commands.
+- **Territories**: Capture zones with timed control, cash rewards, and live ownership broadcast.
 - **Chat**: Global chat is captured, filtered from commands, and mirrored into the control center for moderation.
 - **Commands**:
   - `/register [username] [password]`
   - `/login [username] [password]`
   - `/inv` to inspect personal inventory in chat
   - `/giveitem [playerId] [itemCode] [quantity]` (admin only)
+  - `/jobs`, `/jobstart [code]`, `/jobstop`
+  - `/shops`, `/buy [shopCode] [itemCode]`
+  - `/territories`
 
 ## Admin Control Center
 
-- Login + session tokens persisted in SQLite and auto-cleaned
+- Login + session tokens persisted in MySQL and auto-cleaned
 - Live player metrics, chat feed, and activity log
 - Grant inventory items to any player (online or offline)
 - Socket.IO pushes for chat, inventory, and session changes

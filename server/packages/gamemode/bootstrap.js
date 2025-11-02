@@ -34,6 +34,8 @@ const bootstrap = async () => {
   const repositories = buildRepositories(pool);
   const services = buildServices({ config, repositories });
 
+  await services.territories.syncDefinitions();
+
   const context = {
     config,
     db: pool,
