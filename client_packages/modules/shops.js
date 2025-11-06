@@ -105,18 +105,6 @@ global.shopInteraction = {
     }
 };
 
-// Show inventory
-mp.events.add('client:showInventory', (inventoryJson) => {
-    const inventory = JSON.parse(inventoryJson);
-    mp.gui.chat.push('=== INVENTORY ===');
-    inventory.forEach(item => {
-        mp.gui.chat.push(`${item.item_name} x${item.quantity}`);
-    });
-});
-
-// Inventory key - I key
-mp.keys.bind(0x49, false, () => {
-    mp.events.callRemote('server:getInventory');
-});
+// Old inventory display (kept for compatibility, but replaced by inventory.js module)
 
 console.log('[Client] Shops module loaded');

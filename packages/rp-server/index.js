@@ -18,6 +18,7 @@ require('./modules/player');
 require('./modules/registration');
 require('./modules/character');
 require('./modules/banking');
+require('./modules/inventory');
 require('./modules/shops');
 require('./modules/jobs');
 require('./modules/vehicles');

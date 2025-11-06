@@ -5,6 +5,7 @@
 require('./modules/auth.js');
 require('./modules/hud.js');
 require('./modules/banking.js');
+require('./modules/inventory.js');
 require('./modules/shops.js');
 require('./modules/jobs.js');
 require('./modules/vehicles.js');

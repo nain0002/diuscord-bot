@@ -32,6 +32,7 @@ const serverRoutes = require('./routes/server');
 const databaseRoutes = require('./routes/database');
 const logsRoutes = require('./routes/logs');
 const adminManagementRoutes = require('./routes/admin-management');
+const inventoryRoutes = require('./routes/inventory');
 
 // Import middleware
 const authMiddleware = require('./middleware/auth');
@@ -78,6 +79,7 @@ app.use('/api/server', authMiddleware, serverRoutes);
 app.use('/api/database', authMiddleware, databaseRoutes);
 app.use('/api/logs', authMiddleware, logsRoutes);
 app.use('/api/admin-management', authMiddleware, adminManagementRoutes);
+app.use('/api/inventory', authMiddleware, inventoryRoutes);
 
 // Serve admin panel
 app.get('/', (req, res) => {

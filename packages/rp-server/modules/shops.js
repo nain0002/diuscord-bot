@@ -152,30 +152,21 @@ mp.events.add('server:buyItem', async (player, itemName, itemType, price, quanti
             return;
         }
 
-        // Take money
-        if (!playerModule.takeMoney(player, totalPrice)) {
-            player.call('client:shopResponse', ['error', 'Transaction failed!']);
+        // Use inventory module to add item (includes weight check)
+        const inventoryModule = require('./inventory');
+        const result = await inventoryModule.addItem(data.characterId, itemName, itemType, quantity);
+        
+        if (!result.success) {
+            player.call('client:shopResponse', ['error', result.message]);
             return;
         }
 
-        // Add item to inventory
-        const existing = await database.query(
-            'SELECT * FROM inventory WHERE character_id = ? AND item_name = ?',
-            [data.characterId, itemName]
-        );
-
-        if (existing.length > 0) {
-            // Update quantity
-            await database.query(
-                'UPDATE inventory SET quantity = quantity + ? WHERE id = ?',
-                [quantity, existing[0].id]
-            );
-        } else {
-            // Insert new item
-            await database.query(
-                'INSERT INTO inventory (character_id, item_name, item_type, quantity) VALUES (?, ?, ?, ?)',
-                [data.characterId, itemName, itemType, quantity]
-            );
+        // Take money
+        if (!playerModule.takeMoney(player, totalPrice)) {
+            // Refund item if money transaction fails
+            await inventoryModule.removeItem(data.characterId, itemName, quantity);
+            player.call('client:shopResponse', ['error', 'Transaction failed!']);
+            return;
         }
 
         player.call('client:shopResponse', ['success', `Bought ${quantity}x ${itemName} for $${totalPrice.toLocaleString()}`]);
@@ -187,23 +178,7 @@ mp.events.add('server:buyItem', async (player, itemName, itemType, price, quanti
     }
 });
 
-// Get inventory
-mp.events.add('server:getInventory', async (player) => {
-    try {
-        const data = playerModule.getPlayerData(player);
-        if (!data || !data.characterId) return;
-
-        const inventory = await database.query(
-            'SELECT * FROM inventory WHERE character_id = ?',
-            [data.characterId]
-        );
-
-        player.call('client:showInventory', [JSON.stringify(inventory)]);
-
-    } catch (error) {
-        console.error('[Shops] Error getting inventory:', error);
-    }
-});
+// Inventory is now handled by inventory.js module
 
 // Initialize shops on server start
 setTimeout(() => {
