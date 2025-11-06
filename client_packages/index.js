@@ -24,7 +24,8 @@ console.log('[Client] Core modules loaded');
 // New enhanced handlers
 require('./auth.js');              // Modern authentication handler
 require('./hud-handler.js');       // Modern live HUD
-require('./inventory.js');         // Enhanced inventory handler
+// require('./inventory.js');      // OLD inventory - DISABLED
+require('./inventory-handler-modern.js'); // MODERN INVENTORY SYSTEM ✨
 require('./admin-menu-handler.js'); // Admin menu (F6) - Basic
 require('./admin-menu-handler-enhanced.js'); // Admin menu (F6) - Enhanced
 require('./admin-utils.js');       // Admin utilities (freeze, appearance, etc.)

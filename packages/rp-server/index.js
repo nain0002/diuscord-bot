@@ -39,7 +39,8 @@ require('./modules/player');
 require('./modules/registration');
 require('./modules/character');
 require('./modules/banking');
-require('./modules/inventory');
+// require('./modules/inventory'); // Old inventory - disabled
+require('./modules/inventory-modern'); // Modern inventory system
 require('./modules/shops');
 require('./modules/jobs');
 require('./modules/vehicles');
