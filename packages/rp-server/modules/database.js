@@ -43,6 +43,7 @@ const database = {
                     password VARCHAR(255) NOT NULL,
                     email VARCHAR(100) UNIQUE NOT NULL,
                     social_club VARCHAR(100),
+                    admin_level INT DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL,
                     is_banned BOOLEAN DEFAULT FALSE,

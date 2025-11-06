@@ -1,8 +1,21 @@
-# RAGE:MP Roleplay Server
+# RAGE:MP Roleplay Server + Web Admin Panel
 
-A fully functional RAGE:MP roleplay server with a complete suite of features including player registration, character creation, banking system, shops, jobs, vehicles, and more!
+A fully functional RAGE:MP roleplay server with a complete suite of features including player registration, character creation, banking system, shops, jobs, vehicles, **and a powerful web-based admin panel!**
 
 ## 🎮 Features
+
+### 🎛️ **NEW: Web Admin Panel (like txAdmin!)**
+- **Full web-based administration**
+  - Modern, responsive dashboard
+  - Real-time server statistics
+  - Player management (ban, kick, view, edit)
+  - Database browser and editor
+  - Server configuration
+  - Live logs viewer
+  - WebSocket for real-time updates
+- **Access from anywhere** - Browser-based control panel
+- **Secure authentication** - Session-based with rate limiting
+- **Professional UI** - Beautiful, modern design
 
 ### Core Systems
 - ✅ **Player Registration & Authentication** - Secure account system with password hashing
@@ -83,7 +96,7 @@ A fully functional RAGE:MP roleplay server with a complete suite of features inc
    - Edit `.env` file with your MySQL credentials
    - Database tables will be created automatically on first run
 
-5. **Start the server**:
+5. **Start the game server**:
    ```bash
    # Windows
    ragemp-server.exe
@@ -92,9 +105,17 @@ A fully functional RAGE:MP roleplay server with a complete suite of features inc
    ./ragemp-server
    ```
 
-6. **Connect to the server** via RAGE:MP client
+6. **Start the admin panel** (in a new terminal):
+   ```bash
+   npm run admin
+   ```
+   Access at: `http://localhost:3000`
+   Default login: `admin` / `admin123`
+
+7. **Connect to the game server** via RAGE:MP client
 
 For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
+For admin panel guide, see [ADMIN_PANEL_GUIDE.md](ADMIN_PANEL_GUIDE.md)
 
 ## 📁 Project Structure
 
