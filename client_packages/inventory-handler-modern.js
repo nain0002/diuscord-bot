@@ -25,8 +25,23 @@ function createInventoryBrowser() {
 
 mp.keys.bind(0x49, false, () => { // I key
     try {
+        // Check if player is logged in
+        const characterId = mp.players.local.getVariable('character_id');
+        if (!characterId) {
+            mp.gui.chat.push('!{#FF0000}[Inventory] You must be logged in!');
+            return;
+        }
+        
         if (!inventoryBrowser) {
             createInventoryBrowser();
+            // Small delay for browser to initialize
+            setTimeout(() => {
+                inventoryOpen = true;
+                mp.events.callRemote('requestInventory');
+                mp.gui.cursor.visible = true;
+                mp.gui.chat.show(false);
+            }, 100);
+            return;
         }
         
         inventoryOpen = !inventoryOpen;
@@ -45,6 +60,7 @@ mp.keys.bind(0x49, false, () => { // I key
         }
     } catch (error) {
         console.error('[Inventory] Toggle error:', error);
+        mp.gui.chat.push('!{#FF0000}[Inventory] Error opening inventory');
     }
 });
 
@@ -56,23 +72,58 @@ mp.events.add('updateInventory', (dataJson) => {
     try {
         if (!inventoryBrowser) {
             createInventoryBrowser();
+            // Wait for browser to load, then update
+            setTimeout(() => {
+                updateInventoryData(dataJson);
+            }, 200);
+            return;
         }
         
-        console.log('[Inventory] Received data:', dataJson);
+        updateInventoryData(dataJson);
+        
+    } catch (error) {
+        console.error('[Inventory] Update error:', error);
+        mp.gui.chat.push('!{#FF0000}[Inventory] Failed to load inventory data');
+    }
+});
+
+function updateInventoryData(dataJson) {
+    try {
+        console.log('[Inventory] Received data:', typeof dataJson === 'string' ? dataJson.substring(0, 100) : 'object');
         
         // Parse data if it's a string
-        const data = typeof dataJson === 'string' ? JSON.parse(dataJson) : dataJson;
+        let data;
+        if (typeof dataJson === 'string') {
+            try {
+                data = JSON.parse(dataJson);
+            } catch (parseError) {
+                console.error('[Inventory] JSON parse error:', parseError);
+                mp.gui.chat.push('!{#FF0000}[Inventory] Invalid data format');
+                return;
+            }
+        } else {
+            data = dataJson;
+        }
+        
+        if (!data || !data.items) {
+            console.error('[Inventory] Invalid data structure:', data);
+            mp.gui.chat.push('!{#FF0000}[Inventory] Invalid inventory data');
+            return;
+        }
         
         // Open inventory
         inventoryBrowser.execute('openInventory()');
         
-        // Update inventory data
-        inventoryBrowser.execute(`updateInventory(${JSON.stringify(data)})`);
+        // Update inventory data with proper escaping
+        const safeData = JSON.stringify(data).replace(/\\/g, '\\\\').replace(/'/g, "\\'" );
+        inventoryBrowser.execute(`updateInventory(${safeData})`);
+        
+        console.log('[Inventory] Data updated successfully');
         
     } catch (error) {
-        console.error('[Inventory] Update error:', error);
+        console.error('[Inventory] Update data error:', error);
     }
-});
+}
 
 // ========================================
 // Update Player Stats (Real-time)
@@ -207,6 +258,9 @@ for (let i = 1; i <= 5; i++) {
     mp.keys.bind(keyCode, false, () => {
         if (!inventoryOpen) {
             try {
+                const characterId = mp.players.local.getVariable('character_id');
+                if (!characterId) return;
+                
                 mp.events.callRemote('useHotbarItem', i - 1);
                 console.log('[Inventory] Hotbar key pressed:', i);
             } catch (error) {

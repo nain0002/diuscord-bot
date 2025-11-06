@@ -68,8 +68,14 @@ async function getInventory(characterId) {
 
 async function getFullInventoryData(player) {
     try {
+        if (!player || !mp.players.exists(player)) {
+            console.error('[Inventory] Invalid player');
+            return null;
+        }
+        
         const characterId = player.getVariable('character_id');
         if (!characterId) {
+            console.error('[Inventory] No character_id for player');
             return null;
         }
         
@@ -123,13 +129,13 @@ async function getFullInventoryData(player) {
         return {
             items: formattedItems,
             playerData: {
-                name: `${char.first_name} ${char.last_name}`,
-                level: char.level || 1,
-                health: player.health || 100,
-                armor: player.armour || 0,
-                money: char.money || 0,
-                hunger: char.hunger || 100,
-                thirst: char.thirst || 100,
+                name: `${char.first_name || 'John'} ${char.last_name || 'Doe'}`,
+                level: parseInt(char.level) || 1,
+                health: Math.min(100, Math.max(0, player.health || 100)),
+                armor: Math.min(100, Math.max(0, player.armour || 0)),
+                money: parseInt(char.money) || 0,
+                hunger: Math.min(100, Math.max(0, parseInt(char.hunger) || 100)),
+                thirst: Math.min(100, Math.max(0, parseInt(char.thirst) || 100)),
                 job: char.job || 'Unemployed'
             },
             maxWeight: CONFIG.maxWeight,
@@ -183,6 +189,20 @@ async function canCarryItem(characterId, itemName, quantity = 1) {
 
 async function addItem(characterId, itemName, itemType, quantity = 1) {
     try {
+        // Validate inputs
+        if (!characterId || !itemName || !itemType) {
+            return { success: false, message: 'Invalid parameters' };
+        }
+        
+        // Normalize item name
+        const normalizedName = itemName.toLowerCase();
+        
+        // Check if item exists in database
+        if (!ITEM_DATA[normalizedName]) {
+            console.error(`[Inventory] Unknown item: ${itemName}`);
+            return { success: false, message: 'Unknown item' };
+        }
+        
         // Check weight
         if (!await canCarryItem(characterId, itemName, quantity)) {
             return { success: false, message: 'Inventory too heavy!' };
@@ -215,7 +235,7 @@ async function addItem(characterId, itemName, itemType, quantity = 1) {
         // Add as new item
         await database.execute(
             'INSERT INTO inventory (character_id, item_name, item_type, quantity) VALUES (?, ?, ?, ?)',
-            [characterId, itemName, itemType, quantity]
+            [characterId, itemName, itemType || 'misc', Math.max(1, parseInt(quantity))]
         );
         
         return { success: true, message: `Added ${quantity}x ${itemName}` };
@@ -531,22 +551,52 @@ async function useHotbarItem(player, slot) {
 // Request Inventory
 mp.events.add('requestInventory', async (player) => {
     try {
+        if (!player || !mp.players.exists(player)) {
+            console.error('[Inventory] Invalid player in requestInventory');
+            return;
+        }
+        
+        const characterId = player.getVariable('character_id');
+        if (!characterId) {
+            player.outputChatBox('!{#FF0000}[Inventory] You must be logged in!');
+            return;
+        }
+        
+        console.log(`[Inventory] Requesting inventory for character ${characterId}`);
+        
         const data = await getFullInventoryData(player);
         
         if (data) {
+            console.log(`[Inventory] Sending ${data.items.length} items to player`);
             player.call('updateInventory', [JSON.stringify(data)]);
         } else {
-            player.outputChatBox('!{#FF0000}Failed to load inventory');
+            console.error('[Inventory] Failed to get inventory data');
+            player.outputChatBox('!{#FF0000}[Inventory] Failed to load inventory');
         }
     } catch (error) {
         console.error('[Inventory] Request inventory error:', error);
+        player.outputChatBox('!{#FF0000}[Inventory] An error occurred');
     }
 });
 
 // Use Item
 mp.events.add('useItem', async (player, index) => {
     try {
-        const result = await useItem(player, parseInt(index));
+        if (!player || !mp.players.exists(player)) return;
+        
+        const parsedIndex = parseInt(index);
+        if (isNaN(parsedIndex) || parsedIndex < 0) {
+            player.outputChatBox('!{#FF0000}[Inventory] Invalid item index');
+            return;
+        }
+        
+        const result = await useItem(player, parsedIndex);
+        
+        if (result.success) {
+            player.outputChatBox(`!{#00FF88}[Inventory] ${result.message}`);
+        } else {
+            player.outputChatBox(`!{#FF0000}[Inventory] ${result.message}`);
+        }
         
         // Refresh inventory
         const data = await getFullInventoryData(player);
@@ -555,13 +605,28 @@ mp.events.add('useItem', async (player, index) => {
         }
     } catch (error) {
         console.error('[Inventory] Use item event error:', error);
+        player.outputChatBox('!{#FF0000}[Inventory] Error using item');
     }
 });
 
 // Drop Item
 mp.events.add('dropItem', async (player, index) => {
     try {
-        await dropItem(player, parseInt(index));
+        if (!player || !mp.players.exists(player)) return;
+        
+        const parsedIndex = parseInt(index);
+        if (isNaN(parsedIndex) || parsedIndex < 0) {
+            player.outputChatBox('!{#FF0000}[Inventory] Invalid item index');
+            return;
+        }
+        
+        const result = await dropItem(player, parsedIndex);
+        
+        if (result.success) {
+            player.outputChatBox(`!{#FFA500}[Inventory] ${result.message}`);
+        } else {
+            player.outputChatBox(`!{#FF0000}[Inventory] ${result.message}`);
+        }
         
         // Refresh inventory
         const data = await getFullInventoryData(player);
@@ -570,13 +635,28 @@ mp.events.add('dropItem', async (player, index) => {
         }
     } catch (error) {
         console.error('[Inventory] Drop item event error:', error);
+        player.outputChatBox('!{#FF0000}[Inventory] Error dropping item');
     }
 });
 
 // Split Item
 mp.events.add('splitItem', async (player, index) => {
     try {
-        await splitItem(player, parseInt(index));
+        if (!player || !mp.players.exists(player)) return;
+        
+        const parsedIndex = parseInt(index);
+        if (isNaN(parsedIndex) || parsedIndex < 0) {
+            player.outputChatBox('!{#FF0000}[Inventory] Invalid item index');
+            return;
+        }
+        
+        const result = await splitItem(player, parsedIndex);
+        
+        if (result.success) {
+            player.outputChatBox(`!{#00D4FF}[Inventory] ${result.message}`);
+        } else {
+            player.outputChatBox(`!{#FF0000}[Inventory] ${result.message}`);
+        }
         
         // Refresh inventory
         const data = await getFullInventoryData(player);
@@ -585,13 +665,28 @@ mp.events.add('splitItem', async (player, index) => {
         }
     } catch (error) {
         console.error('[Inventory] Split item event error:', error);
+        player.outputChatBox('!{#FF0000}[Inventory] Error splitting item');
     }
 });
 
 // Destroy Item
 mp.events.add('destroyItem', async (player, index) => {
     try {
-        await destroyItem(player, parseInt(index));
+        if (!player || !mp.players.exists(player)) return;
+        
+        const parsedIndex = parseInt(index);
+        if (isNaN(parsedIndex) || parsedIndex < 0) {
+            player.outputChatBox('!{#FF0000}[Inventory] Invalid item index');
+            return;
+        }
+        
+        const result = await destroyItem(player, parsedIndex);
+        
+        if (result.success) {
+            player.outputChatBox(`!{#FF006E}[Inventory] ${result.message}`);
+        } else {
+            player.outputChatBox(`!{#FF0000}[Inventory] ${result.message}`);
+        }
         
         // Refresh inventory
         const data = await getFullInventoryData(player);
@@ -600,13 +695,34 @@ mp.events.add('destroyItem', async (player, index) => {
         }
     } catch (error) {
         console.error('[Inventory] Destroy item event error:', error);
+        player.outputChatBox('!{#FF0000}[Inventory] Error destroying item');
     }
 });
 
 // Equip Weapon
 mp.events.add('equipWeapon', async (player, slot, weaponName) => {
     try {
-        await equipWeapon(player, slot, weaponName);
+        if (!player || !mp.players.exists(player)) return;
+        
+        if (!slot || !weaponName) {
+            player.outputChatBox('!{#FF0000}[Inventory] Invalid weapon data');
+            return;
+        }
+        
+        // Validate slot
+        const validSlots = ['primary', 'secondary', 'melee'];
+        if (!validSlots.includes(slot)) {
+            player.outputChatBox('!{#FF0000}[Inventory] Invalid weapon slot');
+            return;
+        }
+        
+        const result = await equipWeapon(player, slot, weaponName);
+        
+        if (result.success) {
+            player.outputChatBox(`!{#00FF88}[Inventory] Equipped ${weaponName} to ${slot} slot`);
+        } else {
+            player.outputChatBox(`!{#FF0000}[Inventory] ${result.message}`);
+        }
         
         // Refresh inventory
         const data = await getFullInventoryData(player);
@@ -615,6 +731,7 @@ mp.events.add('equipWeapon', async (player, slot, weaponName) => {
         }
     } catch (error) {
         console.error('[Inventory] Equip weapon event error:', error);
+        player.outputChatBox('!{#FF0000}[Inventory] Error equipping weapon');
     }
 });
 
@@ -630,12 +747,29 @@ mp.events.add('saveHotbar', async (player, hotbarJson) => {
 // Use Hotbar Item
 mp.events.add('useHotbarItem', async (player, slot) => {
     try {
-        await useHotbarItem(player, parseInt(slot));
+        if (!player || !mp.players.exists(player)) return;
         
-        // Refresh inventory
-        const data = await getFullInventoryData(player);
-        if (data) {
-            player.call('updateInventory', [JSON.stringify(data)]);
+        const parsedSlot = parseInt(slot);
+        if (isNaN(parsedSlot) || parsedSlot < 0 || parsedSlot > 4) {
+            player.outputChatBox('!{#FF0000}[Inventory] Invalid hotbar slot');
+            return;
+        }
+        
+        const result = await useHotbarItem(player, parsedSlot);
+        
+        if (!result.success) {
+            // Don't spam for empty slots
+            if (result.message !== 'Empty slot') {
+                player.outputChatBox(`!{#FF0000}[Inventory] ${result.message}`);
+            }
+        }
+        
+        // Refresh inventory if item was used
+        if (result.success) {
+            const data = await getFullInventoryData(player);
+            if (data) {
+                player.call('updateInventory', [JSON.stringify(data)]);
+            }
         }
     } catch (error) {
         console.error('[Inventory] Use hotbar item event error:', error);
@@ -645,10 +779,80 @@ mp.events.add('useHotbarItem', async (player, slot) => {
 // Give Item to Nearest Player
 mp.events.add('giveItemToNearest', async (player, index) => {
     try {
-        // TODO: Implement give to nearest player
-        player.outputChatBox('!{#FFBA08}Feature coming soon: Give to nearest player');
+        if (!player || !mp.players.exists(player)) return;
+        
+        const parsedIndex = parseInt(index);
+        if (isNaN(parsedIndex) || parsedIndex < 0) {
+            player.outputChatBox('!{#FF0000}[Inventory] Invalid item index');
+            return;
+        }
+        
+        const characterId = player.getVariable('character_id');
+        const items = await getInventory(characterId);
+        
+        if (parsedIndex >= items.length) {
+            player.outputChatBox('!{#FF0000}[Inventory] Item not found');
+            return;
+        }
+        
+        const item = items[parsedIndex];
+        
+        // Find nearest player (within 5 meters)
+        let nearestPlayer = null;
+        let nearestDist = 5.0;
+        
+        mp.players.forEach(p => {
+            if (p !== player && mp.players.exists(p)) {
+                const dist = player.position.subtract(p.position).length();
+                if (dist < nearestDist) {
+                    nearestDist = dist;
+                    nearestPlayer = p;
+                }
+            }
+        });
+        
+        if (!nearestPlayer) {
+            player.outputChatBox('!{#FF0000}[Inventory] No player nearby');
+            return;
+        }
+        
+        const targetCharId = nearestPlayer.getVariable('character_id');
+        if (!targetCharId) {
+            player.outputChatBox('!{#FF0000}[Inventory] Target player not logged in');
+            return;
+        }
+        
+        // Check if target can carry
+        if (!await canCarryItem(targetCharId, item.item_name, item.quantity)) {
+            player.outputChatBox('!{#FF0000}[Inventory] Target inventory is full');
+            nearestPlayer.outputChatBox('!{#FF0000}[Inventory] Your inventory is too heavy!');
+            return;
+        }
+        
+        // Remove from sender
+        await database.execute('DELETE FROM inventory WHERE id = ?', [item.id]);
+        
+        // Add to receiver
+        await addItem(targetCharId, item.item_name, item.item_type, item.quantity);
+        
+        // Notifications
+        player.outputChatBox(`!{#00FF88}[Inventory] Gave ${item.quantity}x ${item.item_name} to player`);
+        nearestPlayer.outputChatBox(`!{#00FF88}[Inventory] Received ${item.quantity}x ${item.item_name}`);
+        
+        // Refresh both inventories
+        const data = await getFullInventoryData(player);
+        if (data) {
+            player.call('updateInventory', [JSON.stringify(data)]);
+        }
+        
+        const targetData = await getFullInventoryData(nearestPlayer);
+        if (targetData) {
+            nearestPlayer.call('updateInventory', [JSON.stringify(targetData)]);
+        }
+        
     } catch (error) {
         console.error('[Inventory] Give item event error:', error);
+        player.outputChatBox('!{#FF0000}[Inventory] Error giving item');
     }
 });
 

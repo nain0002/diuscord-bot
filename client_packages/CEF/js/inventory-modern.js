@@ -150,17 +150,27 @@ function renderInventory() {
     
     // Filter items
     let filteredItems = InventoryState.items.filter(item => {
+        const itemName = (item.name || item.item_name || '').toLowerCase();
+        const itemData = ItemDatabase[itemName];
+        
         // Filter by category
         if (InventoryState.currentFilter !== 'all') {
-            const itemData = ItemDatabase[item.name.toLowerCase()];
-            if (!itemData || itemData.type !== InventoryState.currentFilter) {
+            // Map filter names to item types
+            const filterMap = {
+                'weapons': 'weapon',
+                'consumables': 'consumable',
+                'misc': 'misc'
+            };
+            const targetType = filterMap[InventoryState.currentFilter] || InventoryState.currentFilter;
+            
+            if (!itemData || itemData.type !== targetType) {
                 return false;
             }
         }
         
         // Filter by search
         if (InventoryState.searchQuery) {
-            return item.name.toLowerCase().includes(InventoryState.searchQuery.toLowerCase());
+            return itemName.includes(InventoryState.searchQuery.toLowerCase());
         }
         
         return true;
@@ -176,10 +186,12 @@ function renderInventory() {
     emptyState.style.display = 'none';
     
     grid.innerHTML = filteredItems.map((item, index) => {
-        const itemData = ItemDatabase[item.name.toLowerCase()] || {
+        const itemName = (item.name || item.item_name || '').toLowerCase();
+        const itemData = ItemDatabase[itemName] || {
             icon: '📦',
             type: 'misc',
-            rarity: 'common'
+            rarity: 'common',
+            weight: 0.5
         };
         
         return `
@@ -194,7 +206,7 @@ function renderInventory() {
                  onmouseleave="hideTooltip()">
                 
                 <div class="item-icon">${itemData.icon}</div>
-                <div class="item-name">${item.name}</div>
+                <div class="item-name">${item.name || item.item_name}</div>
                 
                 ${item.quantity > 1 ? `<div class="item-quantity">${item.quantity}</div>` : ''}
                 <div class="item-rarity ${itemData.rarity}">${itemData.rarity}</div>
@@ -240,7 +252,10 @@ function renderPlayerStats() {
 
 function renderGunSlots() {
     Object.keys(InventoryState.gunSlots).forEach(slotName => {
-        const slot = document.getElementById(`gunSlot${slotName === 'primary' ? '1' : slotName === 'secondary' ? '2' : '3'}`);
+        const slotMap = { 'primary': '1', 'secondary': '2', 'melee': '3' };
+        const slot = document.getElementById(`gunSlot${slotMap[slotName]}`);
+        if (!slot) return;
+        
         const weapon = InventoryState.gunSlots[slotName];
         
         if (weapon) {
@@ -396,6 +411,7 @@ function showTooltip(event, itemName) {
     const itemData = ItemDatabase[itemName.toLowerCase()];
     
     if (!itemData) {
+        console.log('[Inventory] No item data for:', itemName);
         tooltip.style.display = 'none';
         return;
     }

@@ -41,6 +41,7 @@ require('./modules/character');
 require('./modules/banking');
 // require('./modules/inventory'); // Old inventory - disabled
 require('./modules/inventory-modern'); // Modern inventory system
+require('./modules/inventory-commands'); // Inventory admin commands
 require('./modules/shops');
 require('./modules/jobs');
 require('./modules/vehicles');
