@@ -46,6 +46,7 @@ require('./modules/vehicles');
 require('./modules/admin');
 require('./modules/spawn');
 require('./modules/admin-bridge');
+require('./modules/admin-permissions'); // Load permissions first
 require('./modules/admin-commands');
 require('./modules/admin-commands-enhanced');
 require('./modules/user-menu');

@@ -1,4 +1,6 @@
-# 🎮 RAGE:MP Roleplay Server - Complete Package (Enhanced Admin Edition)
+# 🎮 RAGE:MP Roleplay Server v3.0 - Complete Package
+
+## 🆕 Version 3.0 - Major Update!
 
 ## 🌟 What's New - Latest Update (Enhanced Admin System!)
 

@@ -1,5 +1,6 @@
 // Enhanced Admin Commands Module
 const db = require('./database');
+const AdminPermissions = require('./admin-permissions');
 
 // Chat logs storage
 const chatLogs = [];
@@ -462,7 +463,26 @@ mp.events.add('getOnlinePlayerList', (player) => {
 });
 
 mp.events.add('adminPlayerAction', async (player, action, targetId) => {
-    if (!player.getVariable('is_admin')) return;
+    // Check basic admin status
+    if (!AdminPermissions.isAdmin(player)) {
+        player.outputChatBox('!{#FF0000}You are not an admin!');
+        return;
+    }
+    
+    // Permission checks per action
+    const permissionMap = {
+        'heal': null, // All admins can heal
+        'freeze': 'freeze',
+        'teleport': 'teleport',
+        'spectate': null, // All admins can spectate
+        'kick': 'kick'
+    };
+    
+    const requiredPerm = permissionMap[action];
+    if (requiredPerm && !AdminPermissions.hasPermission(player, requiredPerm)) {
+        AdminPermissions.sendPermissionDenied(player, action);
+        return;
+    }
     
     const target = mp.players.at(targetId);
     if (!target) {
@@ -471,30 +491,36 @@ mp.events.add('adminPlayerAction', async (player, action, targetId) => {
     }
     
     const adminName = player.getVariable('characterName') || player.name;
+    const adminLevel = AdminPermissions.getPlayerAdminLevel(player);
+    const adminLevelName = AdminPermissions.getLevelName(adminLevel);
     
     switch(action) {
         case 'heal':
             adminCommands.healPlayer(target);
-            player.outputChatBox(`!{#00FF00}Player ${target.name} healed.`);
+            player.outputChatBox(`!{#00FF00}[${adminLevelName}] Player ${target.name} healed.`);
+            target.outputChatBox(`!{#00FF00}You have been healed by admin ${adminName}.`);
             break;
         case 'freeze':
             const frozen = target.getVariable('frozen') || false;
             adminCommands.freezePlayer(target, !frozen);
             target.setVariable('frozen', !frozen);
-            player.outputChatBox(`!{#00FF00}Player ${target.name} ${!frozen ? 'frozen' : 'unfrozen'}.`);
+            player.outputChatBox(`!{#00FF00}[${adminLevelName}] Player ${target.name} ${!frozen ? 'frozen' : 'unfrozen'}.`);
+            target.outputChatBox(`!{#FFA500}You have been ${!frozen ? 'frozen' : 'unfrozen'} by admin ${adminName}.`);
             break;
         case 'teleport':
             adminCommands.teleportToPlayer(player, target);
-            player.outputChatBox(`!{#00FF00}Teleported to ${target.name}.`);
+            player.outputChatBox(`!{#00FF00}[${adminLevelName}] Teleported to ${target.name}.`);
             break;
         case 'spectate':
             player.call('spectatePlayer', [target.position, target.heading]);
             player.setVariable('spectating', targetId);
+            player.outputChatBox(`!{#00FF00}[${adminLevelName}] Now spectating ${target.name}.`);
             break;
         case 'kick':
             const reason = 'Kicked by admin';
             await adminCommands.kickPlayer(target, reason);
-            player.outputChatBox(`!{#00FF00}Player ${target.name} kicked.`);
+            player.outputChatBox(`!{#00FF00}[${adminLevelName}] Player ${target.name} kicked.`);
+            mp.players.broadcast(`!{#FFA500}[ADMIN] Player ${target.name} has been kicked by ${adminName}.`);
             break;
     }
 });
@@ -570,15 +596,25 @@ mp.events.add('adminCommand', async (player, action, param) => {
 });
 
 mp.events.add('adminSpawnVehicle', (player, model, colorJson) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!AdminPermissions.hasPermission(player, 'spawn_vehicle')) {
+        AdminPermissions.sendPermissionDenied(player, 'spawn vehicles');
+        return;
+    }
     
-    const color = JSON.parse(colorJson);
-    const success = adminCommands.spawnVehicle(player, model, color);
-    
-    if (success) {
-        player.outputChatBox(`!{#00FF00}Vehicle ${model} spawned.`);
-    } else {
-        player.outputChatBox('!{#FF0000}Failed to spawn vehicle.');
+    try {
+        const color = JSON.parse(colorJson);
+        const success = adminCommands.spawnVehicle(player, model, color);
+        
+        const levelName = AdminPermissions.getLevelName(AdminPermissions.getPlayerAdminLevel(player));
+        
+        if (success) {
+            player.outputChatBox(`!{#00FF00}[${levelName}] Vehicle ${model} spawned.`);
+        } else {
+            player.outputChatBox('!{#FF0000}Failed to spawn vehicle. Check model name.');
+        }
+    } catch (error) {
+        console.error('[Admin] Error in adminSpawnVehicle:', error);
+        player.outputChatBox('!{#FF0000}Error spawning vehicle.');
     }
 });
 

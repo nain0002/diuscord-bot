@@ -36,21 +36,29 @@ const database = {
     createTables: async () => {
         try {
             const queries = [
-                // Users table
+                // Users table (Enhanced)
                 `CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     username VARCHAR(50) UNIQUE NOT NULL,
                     password VARCHAR(255) NOT NULL,
                     email VARCHAR(100) UNIQUE NOT NULL,
                     social_club VARCHAR(100),
-                    admin_level INT DEFAULT 0,
+                    admin_level INT DEFAULT 0 COMMENT '0=Player, 1=Helper, 2=Moderator, 3=Admin, 4=HeadAdmin, 5=Owner',
                     is_admin BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL,
                     is_banned BOOLEAN DEFAULT FALSE,
                     ban_reason TEXT,
+                    total_playtime INT DEFAULT 0 COMMENT 'Total minutes played',
+                    last_ip VARCHAR(45),
+                    is_whitelisted BOOLEAN DEFAULT FALSE,
+                    discord_id VARCHAR(100),
+                    two_factor_enabled BOOLEAN DEFAULT FALSE,
+                    two_factor_secret VARCHAR(100),
                     INDEX idx_username (username),
-                    INDEX idx_email (email)
+                    INDEX idx_email (email),
+                    INDEX idx_social_club (social_club),
+                    INDEX idx_admin_level (admin_level)
                 )`,
 
                 // Characters table
@@ -250,6 +258,108 @@ const database = {
                     INDEX idx_status (status),
                     INDEX idx_reporter (reporter_id),
                     INDEX idx_reported (reported_id)
+                )`,
+                
+                // Player statistics table (NEW)
+                `CREATE TABLE IF NOT EXISTS player_stats (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    character_id INT NOT NULL UNIQUE,
+                    distance_walked FLOAT DEFAULT 0,
+                    distance_driven FLOAT DEFAULT 0,
+                    distance_flown FLOAT DEFAULT 0,
+                    vehicles_owned INT DEFAULT 0,
+                    properties_owned INT DEFAULT 0,
+                    businesses_owned INT DEFAULT 0,
+                    jobs_completed INT DEFAULT 0,
+                    money_earned BIGINT DEFAULT 0,
+                    money_spent BIGINT DEFAULT 0,
+                    items_crafted INT DEFAULT 0,
+                    fish_caught INT DEFAULT 0,
+                    drugs_sold INT DEFAULT 0,
+                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
+                    INDEX idx_character_id (character_id)
+                )`,
+                
+                // Achievements table (NEW)
+                `CREATE TABLE IF NOT EXISTS achievements (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL UNIQUE,
+                    description TEXT NOT NULL,
+                    category VARCHAR(50) NOT NULL,
+                    points INT DEFAULT 10,
+                    icon VARCHAR(255),
+                    requirement_type VARCHAR(50) NOT NULL COMMENT 'money, kills, distance, etc',
+                    requirement_value INT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_category (category)
+                )`,
+                
+                // Player achievements table (NEW)
+                `CREATE TABLE IF NOT EXISTS player_achievements (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    character_id INT NOT NULL,
+                    achievement_id INT NOT NULL,
+                    unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    progress INT DEFAULT 0,
+                    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
+                    FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE,
+                    UNIQUE KEY unique_achievement (character_id, achievement_id),
+                    INDEX idx_character_id (character_id)
+                )`,
+                
+                // Admin permissions table (NEW)
+                `CREATE TABLE IF NOT EXISTS admin_permissions (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    admin_level INT NOT NULL UNIQUE,
+                    level_name VARCHAR(50) NOT NULL,
+                    can_kick BOOLEAN DEFAULT FALSE,
+                    can_ban BOOLEAN DEFAULT FALSE,
+                    can_mute BOOLEAN DEFAULT FALSE,
+                    can_freeze BOOLEAN DEFAULT FALSE,
+                    can_teleport BOOLEAN DEFAULT FALSE,
+                    can_spawn_vehicle BOOLEAN DEFAULT FALSE,
+                    can_spawn_item BOOLEAN DEFAULT FALSE,
+                    can_give_money BOOLEAN DEFAULT FALSE,
+                    can_manage_whitelist BOOLEAN DEFAULT FALSE,
+                    can_view_logs BOOLEAN DEFAULT FALSE,
+                    can_manage_admins BOOLEAN DEFAULT FALSE,
+                    can_edit_database BOOLEAN DEFAULT FALSE,
+                    can_restart_server BOOLEAN DEFAULT FALSE,
+                    INDEX idx_admin_level (admin_level)
+                )`,
+                
+                // Player sessions table (NEW)
+                `CREATE TABLE IF NOT EXISTS player_sessions (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    character_id INT,
+                    session_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    session_end TIMESTAMP NULL,
+                    duration_minutes INT DEFAULT 0,
+                    ip_address VARCHAR(45),
+                    disconnect_reason VARCHAR(100),
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE SET NULL,
+                    INDEX idx_user_id (user_id),
+                    INDEX idx_session_start (session_start)
+                )`,
+                
+                // Economy logs table (NEW)
+                `CREATE TABLE IF NOT EXISTS economy_logs (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    character_id INT NOT NULL,
+                    transaction_type ENUM('earn', 'spend', 'transfer', 'bank_deposit', 'bank_withdraw') NOT NULL,
+                    amount INT NOT NULL,
+                    balance_before INT NOT NULL,
+                    balance_after INT NOT NULL,
+                    source VARCHAR(100) NOT NULL COMMENT 'job, shop, player, atm, etc',
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
+                    INDEX idx_character_id (character_id),
+                    INDEX idx_transaction_type (transaction_type),
+                    INDEX idx_created_at (created_at)
                 )`
             ];
 
@@ -257,14 +367,66 @@ const database = {
                 await pool.query(query);
             }
 
-            // Add warnings column to characters if not exists
+            // Add columns if not exists
             try {
                 await pool.query(`ALTER TABLE characters ADD COLUMN warnings INT DEFAULT 0`);
             } catch (e) {
-                // Column likely already exists, ignore error
+                // Column likely already exists
+            }
+            
+            // Insert default admin permissions if not exists
+            try {
+                const permissions = [
+                    [0, 'Player', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [1, 'Helper', 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [2, 'Moderator', 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0],
+                    [3, 'Admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                    [4, 'Head Admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [5, 'Owner', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+                ];
+                
+                for (const perm of permissions) {
+                    await pool.query(
+                        `INSERT IGNORE INTO admin_permissions (
+                            admin_level, level_name, can_kick, can_ban, can_mute, can_freeze,
+                            can_teleport, can_spawn_vehicle, can_spawn_item, can_give_money,
+                            can_manage_whitelist, can_view_logs, can_manage_admins, can_edit_database,
+                            can_restart_server
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        perm
+                    );
+                }
+            } catch (e) {
+                console.error('[Database] Error inserting admin permissions:', e.message);
+            }
+            
+            // Insert default achievements
+            try {
+                const achievements = [
+                    ['First Steps', 'Complete your first job', 'Jobs', 10, '🎯', 'jobs_completed', 1],
+                    ['Money Maker', 'Earn $100,000', 'Economy', 25, '💰', 'money_earned', 100000],
+                    ['Road Warrior', 'Drive 100 km', 'Driving', 15, '🚗', 'distance_driven', 100000],
+                    ['Sky High', 'Fly 50 km', 'Flying', 20, '✈️', 'distance_flown', 50000],
+                    ['Survivor', 'Play for 10 hours', 'Playtime', 30, '⏰', 'playtime', 600],
+                    ['Level Up', 'Reach level 10', 'Progression', 20, '⭐', 'level', 10],
+                    ['Entrepreneur', 'Own 3 businesses', 'Business', 50, '🏢', 'businesses_owned', 3],
+                    ['Vehicle Collector', 'Own 10 vehicles', 'Vehicles', 30, '🏎️', 'vehicles_owned', 10]
+                ];
+                
+                for (const ach of achievements) {
+                    await pool.query(
+                        `INSERT IGNORE INTO achievements (name, description, category, points, icon, requirement_type, requirement_value) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                        ach
+                    );
+                }
+            } catch (e) {
+                console.error('[Database] Error inserting achievements:', e.message);
             }
 
             console.log('[Database] All tables created/verified successfully!');
+            console.log('[Database] Admin permission levels initialized!');
+            console.log('[Database] Default achievements created!');
         } catch (error) {
             console.error('[Database] Error creating tables:', error);
         }
