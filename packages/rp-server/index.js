@@ -3,7 +3,13 @@
  * This is the main server-side entry point that initializes all modules
  */
 
-require('dotenv').config();
+// Note: .env should be in the RAGE:MP root folder (server-files/)
+try {
+    require('dotenv').config({ path: '../../.env' });
+} catch (e) {
+    console.log('[Server] .env file not found, using default values');
+}
+
 const database = require('./modules/database');
 
 console.log('=================================');
