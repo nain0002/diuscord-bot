@@ -192,6 +192,9 @@ const database = {
 
     query: async (sql, params = []) => {
         try {
+            if (!pool) {
+                throw new Error('Database connection not initialized. Call connect() first.');
+            }
             const [results] = await pool.query(sql, params);
             return results;
         } catch (error) {
@@ -201,7 +204,14 @@ const database = {
     },
 
     getConnection: async () => {
+        if (!pool) {
+            throw new Error('Database connection not initialized. Call connect() first.');
+        }
         return await pool.getConnection();
+    },
+
+    isConnected: () => {
+        return pool !== null && pool !== undefined;
     }
 };
 

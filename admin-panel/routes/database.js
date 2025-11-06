@@ -74,11 +74,25 @@ router.post('/query', async (req, res) => {
         }
 
         // Block dangerous queries
-        const dangerousKeywords = ['DROP', 'TRUNCATE', 'DELETE FROM users', 'DELETE FROM characters'];
-        const upperQuery = query.toUpperCase();
+        const dangerousKeywords = [
+            'DROP', 'TRUNCATE', 'DELETE FROM users', 'DELETE FROM characters',
+            'ALTER TABLE', 'CREATE TABLE', 'DROP DATABASE', 'CREATE DATABASE',
+            'GRANT', 'REVOKE', 'DROP USER', 'CREATE USER', 'ALTER USER'
+        ];
+        const upperQuery = query.toUpperCase().trim();
+        
+        // Additional safety: only allow SELECT and specific UPDATE queries
+        if (!upperQuery.startsWith('SELECT') && !upperQuery.startsWith('UPDATE')) {
+            return res.status(403).json({ error: 'Only SELECT and UPDATE queries are allowed' });
+        }
         
         if (dangerousKeywords.some(keyword => upperQuery.includes(keyword))) {
             return res.status(403).json({ error: 'Dangerous query blocked' });
+        }
+        
+        // Limit to prevent large data dumps
+        if (!upperQuery.includes('LIMIT')) {
+            return res.status(400).json({ error: 'Query must include LIMIT clause' });
         }
 
         const result = await database.query(query);
@@ -96,16 +110,33 @@ router.post('/backup', (req, res) => {
     try {
         const { exec } = require('child_process');
         const date = new Date().toISOString().split('T')[0];
-        const filename = `backup_${date}.sql`;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `backup_${date}_${timestamp}.sql`;
 
-        const command = `mysqldump -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} > ${filename}`;
+        // Validate environment variables
+        if (!process.env.DB_USER || !process.env.DB_NAME) {
+            return res.status(500).json({ error: 'Database configuration missing' });
+        }
+
+        // Use safer command construction
+        const dbUser = process.env.DB_USER.replace(/[^a-zA-Z0-9_]/g, '');
+        const dbName = process.env.DB_NAME.replace(/[^a-zA-Z0-9_]/g, '');
+        const dbPass = process.env.DB_PASSWORD || '';
+
+        let command;
+        if (dbPass) {
+            command = `mysqldump -u ${dbUser} -p${dbPass} ${dbName} > ${filename}`;
+        } else {
+            command = `mysqldump -u ${dbUser} ${dbName} > ${filename}`;
+        }
 
         exec(command, (error, stdout, stderr) => {
             if (error) {
-                return res.status(500).json({ error: 'Backup failed' });
+                console.error('[Database] Backup error:', error);
+                return res.status(500).json({ error: 'Backup failed', details: error.message });
             }
 
-            res.json({ success: true, message: 'Backup created', filename });
+            res.json({ success: true, message: 'Backup created successfully', filename });
         });
 
     } catch (error) {

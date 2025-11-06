@@ -46,9 +46,17 @@ mp.events.add('playerQuit', async (player, exitType, reason) => {
 
 // Save player data to database
 async function savePlayerData(player) {
+    if (!player || !player.position) {
+        console.error('[Player] Invalid player object in savePlayerData');
+        return;
+    }
+    
     const data = playerData.get(player);
     
-    if (!data || !data.characterId) return;
+    if (!data || !data.characterId || !data.characterData) {
+        console.warn('[Player] No character data to save');
+        return;
+    }
 
     try {
         const pos = player.position;
@@ -58,8 +66,9 @@ async function savePlayerData(player) {
                 health = ?, armor = ?, money = ?,
                 last_played = NOW()
             WHERE id = ?`,
-            [pos.x, pos.y, pos.z, player.heading, player.health, player.armour, 
-             data.characterData.money, data.characterId]
+            [pos.x || 0, pos.y || 0, pos.z || 0, player.heading || 0, 
+             player.health || 100, player.armour || 0, 
+             data.characterData.money || 0, data.characterId]
         );
         
         console.log(`[Player] Saved data for ${player.name}`);
@@ -84,9 +93,14 @@ function setPlayerData(player, key, value) {
 
 // Give money to player
 function giveMoney(player, amount) {
+    if (!player || !player.call) return false;
+    
     const data = playerData.get(player);
     if (data && data.characterData) {
-        data.characterData.money += amount;
+        const numAmount = Number(amount);
+        if (isNaN(numAmount) || numAmount < 0) return false;
+        
+        data.characterData.money += numAmount;
         player.call('client:updateMoney', [data.characterData.money]);
         return true;
     }
@@ -95,9 +109,15 @@ function giveMoney(player, amount) {
 
 // Take money from player
 function takeMoney(player, amount) {
+    if (!player || !player.call) return false;
+    
     const data = playerData.get(player);
-    if (data && data.characterData && data.characterData.money >= amount) {
-        data.characterData.money -= amount;
+    if (data && data.characterData) {
+        const numAmount = Number(amount);
+        if (isNaN(numAmount) || numAmount < 0) return false;
+        if (data.characterData.money < numAmount) return false;
+        
+        data.characterData.money -= numAmount;
         player.call('client:updateMoney', [data.characterData.money]);
         return true;
     }
