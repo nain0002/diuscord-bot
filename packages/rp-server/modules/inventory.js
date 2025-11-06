@@ -300,14 +300,40 @@ async function giveItem(player, itemId, itemName) {
     }
 }
 
-// Event: Get inventory
-mp.events.add('server:getInventory', async (player) => {
+// Event: Get inventory (Request from client)
+mp.events.add('requestInventory', async (player) => {
     try {
-        const data = playerModule.getPlayerData(player);
-        if (!data || !data.characterId) return;
+        const characterId = player.getVariable('characterId');
+        if (!characterId) return;
         
-        const inventory = await getInventory(data.characterId);
-        player.call('client:showInventoryUI', [JSON.stringify(inventory)]);
+        const inventory = await database.query(
+            'SELECT * FROM inventory WHERE character_id = ? ORDER BY category, item_name',
+            [characterId]
+        );
+        
+        // Calculate current weight
+        let currentWeight = 0;
+        const items = inventory.map(item => {
+            const weight = item.weight || 0.5;
+            currentWeight += weight * item.quantity;
+            return {
+                name: item.item_name,
+                category: item.category || 'misc',
+                count: item.quantity,
+                weight: weight
+            };
+        });
+        
+        const money = player.getVariable('money') || 0;
+        
+        const inventoryData = {
+            items: items,
+            money: money,
+            currentWeight: Math.round(currentWeight * 100) / 100,
+            maxWeight: MAX_INVENTORY_WEIGHT
+        };
+        
+        player.call('updateInventory', [JSON.stringify(inventoryData)]);
         
     } catch (error) {
         console.error('[Inventory] Error getting inventory:', error);
@@ -315,18 +341,231 @@ mp.events.add('server:getInventory', async (player) => {
 });
 
 // Event: Use item
-mp.events.add('server:useItem', (player, itemId, itemName) => {
-    useItem(player, itemId, itemName);
+mp.events.add('useItem', async (player, index) => {
+    try {
+        const characterId = player.getVariable('characterId');
+        if (!characterId) return;
+        
+        const inventory = await database.query(
+            'SELECT * FROM inventory WHERE character_id = ? ORDER BY category, item_name',
+            [characterId]
+        );
+        
+        if (index < 0 || index >= inventory.length) return;
+        
+        const item = inventory[index];
+        
+        // Handle item use based on category
+        switch (item.category) {
+            case 'food':
+                player.health = Math.min(100, player.health + 20);
+                player.outputChatBox(`~g~Used ${item.item_name} (+20 HP)`);
+                break;
+            case 'medical':
+                player.health = 100;
+                player.outputChatBox(`~g~Used ${item.item_name} (Full HP)`);
+                break;
+            case 'weapon':
+                player.outputChatBox(`~y~Equipped ${item.item_name}`);
+                break;
+            default:
+                player.outputChatBox(`~y~Used ${item.item_name}`);
+        }
+        
+        // Remove one item
+        if (item.quantity > 1) {
+            await database.query(
+                'UPDATE inventory SET quantity = quantity - 1 WHERE id = ?',
+                [item.id]
+            );
+        } else {
+            await database.query(
+                'DELETE FROM inventory WHERE id = ?',
+                [item.id]
+            );
+        }
+        
+        // Refresh inventory
+        player.call('requestInventory');
+        
+    } catch (error) {
+        console.error('[Inventory] Error using item:', error);
+    }
 });
 
 // Event: Drop item
-mp.events.add('server:dropItem', (player, itemId, itemName) => {
-    dropItem(player, itemId, itemName);
+mp.events.add('dropItem', async (player, index) => {
+    try {
+        const characterId = player.getVariable('characterId');
+        if (!characterId) return;
+        
+        const inventory = await database.query(
+            'SELECT * FROM inventory WHERE character_id = ? ORDER BY category, item_name',
+            [characterId]
+        );
+        
+        if (index < 0 || index >= inventory.length) return;
+        
+        const item = inventory[index];
+        
+        // Remove one item
+        if (item.quantity > 1) {
+            await database.query(
+                'UPDATE inventory SET quantity = quantity - 1 WHERE id = ?',
+                [item.id]
+            );
+        } else {
+            await database.query(
+                'DELETE FROM inventory WHERE id = ?',
+                [item.id]
+            );
+        }
+        
+        player.outputChatBox(`~y~Dropped ${item.item_name}`);
+        
+        // TODO: Create dropped item in world
+        
+        // Refresh inventory
+        mp.events.call('requestInventory', player);
+        
+    } catch (error) {
+        console.error('[Inventory] Error dropping item:', error);
+    }
 });
 
-// Event: Give item
-mp.events.add('server:giveItem', (player, itemId, itemName) => {
-    giveItem(player, itemId, itemName);
+// Event: Give item to nearest player
+mp.events.add('giveItemToNearest', async (player, index) => {
+    try {
+        const characterId = player.getVariable('characterId');
+        if (!characterId) return;
+        
+        // Find nearest player
+        let nearestPlayer = null;
+        let nearestDist = 3.0;
+        
+        mp.players.forEach(p => {
+            if (p !== player && p.dimension === player.dimension) {
+                const dist = player.dist(p.position);
+                if (dist < nearestDist) {
+                    nearestPlayer = p;
+                    nearestDist = dist;
+                }
+            }
+        });
+        
+        if (!nearestPlayer) {
+            player.outputChatBox('~r~No player nearby!');
+            return;
+        }
+        
+        const targetCharacterId = nearestPlayer.getVariable('characterId');
+        if (!targetCharacterId) {
+            player.outputChatBox('~r~Player not ready!');
+            return;
+        }
+        
+        const inventory = await database.query(
+            'SELECT * FROM inventory WHERE character_id = ? ORDER BY category, item_name',
+            [characterId]
+        );
+        
+        if (index < 0 || index >= inventory.length) return;
+        
+        const item = inventory[index];
+        
+        // Remove from sender
+        if (item.quantity > 1) {
+            await database.query(
+                'UPDATE inventory SET quantity = quantity - 1 WHERE id = ?',
+                [item.id]
+            );
+        } else {
+            await database.query(
+                'DELETE FROM inventory WHERE id = ?',
+                [item.id]
+            );
+        }
+        
+        // Add to receiver
+        await database.query(
+            'INSERT INTO inventory (character_id, item_name, category, quantity, weight) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE quantity = quantity + 1',
+            [targetCharacterId, item.item_name, item.category, 1, item.weight]
+        );
+        
+        player.outputChatBox(`~g~Gave ${item.item_name} to ${nearestPlayer.name}`);
+        nearestPlayer.outputChatBox(`~g~Received ${item.item_name} from ${player.name}`);
+        
+        // Refresh both inventories
+        mp.events.call('requestInventory', player);
+        
+    } catch (error) {
+        console.error('[Inventory] Error giving item:', error);
+    }
+});
+
+// Event: Split item
+mp.events.add('splitItem', async (player, index) => {
+    try {
+        const characterId = player.getVariable('characterId');
+        if (!characterId) return;
+        
+        const inventory = await database.query(
+            'SELECT * FROM inventory WHERE character_id = ? ORDER BY category, item_name',
+            [characterId]
+        );
+        
+        if (index < 0 || index >= inventory.length) return;
+        
+        const item = inventory[index];
+        
+        if (item.quantity < 2) {
+            player.outputChatBox('~r~Cannot split single item!');
+            return;
+        }
+        
+        const splitAmount = Math.floor(item.quantity / 2);
+        
+        // Update existing stack
+        await database.query(
+            'UPDATE inventory SET quantity = quantity - ? WHERE id = ?',
+            [splitAmount, item.id]
+        );
+        
+        // Create new stack
+        await database.query(
+            'INSERT INTO inventory (character_id, item_name, category, quantity, weight) VALUES (?, ?, ?, ?, ?)',
+            [characterId, item.item_name, item.category, splitAmount, item.weight]
+        );
+        
+        player.outputChatBox(`~g~Split ${item.item_name} into ${splitAmount} and ${item.quantity - splitAmount}`);
+        
+        // Refresh inventory
+        mp.events.call('requestInventory', player);
+        
+    } catch (error) {
+        console.error('[Inventory] Error splitting item:', error);
+    }
+});
+
+// Event: Drop all items
+mp.events.add('dropAllItems', async (player) => {
+    try {
+        const characterId = player.getVariable('characterId');
+        if (!characterId) return;
+        
+        await database.query(
+            'DELETE FROM inventory WHERE character_id = ?',
+            [characterId]
+        );
+        
+        player.outputChatBox('~y~Dropped all items!');
+        
+        // Refresh inventory
+        mp.events.call('requestInventory', player);
+        
+    } catch (error) {
+        console.error('[Inventory] Error dropping all items:', error);
+    }
 });
 
 console.log('[Inventory] Module loaded');

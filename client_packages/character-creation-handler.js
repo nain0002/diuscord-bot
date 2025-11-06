@@ -35,7 +35,7 @@ function setupCreationCamera() {
 // Handle character creation step changes
 mp.events.add('characterCreationStep', (step, data) => {
     // Update preview based on step
-    mp.console.logInfo(`Character creation step: ${step}`);
+    console.log(`[Character Creation] Step: ${step}`);
 });
 
 // Handle gender selection

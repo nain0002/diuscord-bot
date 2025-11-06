@@ -58,11 +58,11 @@ function spawnBotCars() {
                 botVehicles.push(vehicle);
             }
         } catch (err) {
-            mp.console.logError(`Failed to spawn bot car: ${point.model}`);
+            console.error(`[Bot Cars] Failed to spawn: ${point.model}`);
         }
     });
     
-    mp.console.logInfo(`Spawned ${botVehicles.length} bot vehicles`);
+    console.log(`[Bot Cars] Spawned ${botVehicles.length} bot vehicles`);
 }
 
 // Initialize bot cars after player ready

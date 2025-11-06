@@ -373,6 +373,25 @@ You now have a **fully functional, modern RAGE:MP roleplay server** with:
 
 ---
 
+---
+
+## 🔧 Latest Fixes (v2.0.1)
+
+### All Scripts Rechecked and Fixed! ✅
+
+**7 Critical Issues Fixed:**
+1. ✅ Added missing `db.execute()` method to database module
+2. ✅ Fixed console logging methods (mp.console → console)
+3. ✅ Fixed database query destructuring issues
+4. ✅ Corrected vehicle column name (owner_id → character_id)
+5. ✅ Added all missing inventory event handlers
+6. ✅ Created admin freeze functionality (new file: `admin-utils.js`)
+7. ✅ Fixed inventory data formatting for UI
+
+**See `FIXES_APPLIED.md` and `QUICK_FIX_REFERENCE.md` for complete details.**
+
+---
+
 **Last Updated:** 2025-11-06  
-**Version:** 2.0.0 - Complete UI Overhaul  
-**Status:** Production Ready
+**Version:** 2.0.1 - Bug Fix Release  
+**Status:** Production Ready - All Issues Resolved ✅

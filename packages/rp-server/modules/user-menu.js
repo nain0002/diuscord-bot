@@ -8,7 +8,7 @@ mp.events.add('requestUserMenuData', async (player) => {
         if (!characterId) return;
         
         // Get character data
-        const [characters] = await db.query(
+        const characters = await db.query(
             'SELECT * FROM characters WHERE id = ?',
             [characterId]
         );
@@ -17,7 +17,7 @@ mp.events.add('requestUserMenuData', async (player) => {
         const character = characters[0];
         
         // Get bank data
-        const [bankAccounts] = await db.query(
+        const bankAccounts = await db.query(
             'SELECT balance FROM bank_accounts WHERE character_id = ?',
             [characterId]
         );
@@ -25,8 +25,8 @@ mp.events.add('requestUserMenuData', async (player) => {
         const bankBalance = bankAccounts && bankAccounts[0] ? bankAccounts[0].balance : 0;
         
         // Get vehicle count
-        const [vehicles] = await db.query(
-            'SELECT COUNT(*) as count FROM vehicles WHERE owner_id = ?',
+        const vehicles = await db.query(
+            'SELECT COUNT(*) as count FROM vehicles WHERE character_id = ?',
             [characterId]
         );
         
