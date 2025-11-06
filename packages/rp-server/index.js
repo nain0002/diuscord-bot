@@ -3,9 +3,14 @@
  * This is the main server-side entry point that initializes all modules
  */
 
-// Note: .env should be in the RAGE:MP root folder (server-files/)
+// Load .env from RAGE:MP root folder (server-files/)
+// This file is executed from packages/rp-server/, so we need to go up to root
+const path = require('path');
+const envPath = path.join(__dirname, '../../.env');
+
 try {
-    require('dotenv').config({ path: '../../.env' });
+    require('dotenv').config({ path: envPath });
+    console.log('[Server] Environment variables loaded');
 } catch (e) {
     console.log('[Server] .env file not found, using default values');
 }
