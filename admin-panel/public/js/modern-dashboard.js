@@ -75,12 +75,18 @@ function switchPage(page) {
         players: 'Live Players',
         chat: 'Live Chat Monitor',
         users: 'User Database',
+        vehicles: 'Vehicle Management',
+        economy: 'Economy Management',
+        bans: 'Bans & Reports',
+        analytics: 'Server Analytics',
+        leaderboards: 'Leaderboards',
+        'server-control': 'Server Control',
         database: 'Database Management',
         server: 'Server Configuration',
         logs: 'Server Logs',
         events: 'Server Events'
     };
-    document.getElementById('pageTitle').textContent = titles[page];
+    document.getElementById('pageTitle').textContent = titles[page] || page;
 
     // Load page data
     switch (page) {
@@ -95,6 +101,25 @@ function switchPage(page) {
             break;
         case 'users':
             loadUsers();
+            break;
+        case 'vehicles':
+            loadVehicles();
+            break;
+        case 'economy':
+            loadEconomy();
+            break;
+        case 'bans':
+            loadBans();
+            loadReports();
+            break;
+        case 'analytics':
+            loadAnalytics();
+            break;
+        case 'leaderboards':
+            loadLeaderboards();
+            break;
+        case 'server-control':
+            // No auto-load needed
             break;
         case 'database':
             loadDatabase();
@@ -795,6 +820,535 @@ function escapeHtml(text) {
 function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
     // You can implement a toast notification system here
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RAGE:MP ESSENTIAL FEATURES
+// ═══════════════════════════════════════════════════════════════════
+
+// Vehicle Management
+async function loadVehicles() {
+    try {
+        const response = await fetch('/api/vehicles');
+        const data = await response.json();
+
+        if (data.success) {
+            const vehicles = data.vehicles || [];
+            const tbody = document.getElementById('vehicles-tbody');
+            
+            if (vehicles.length > 0) {
+                tbody.innerHTML = vehicles.map(v => `
+                    <tr>
+                        <td>${v.id}</td>
+                        <td>${v.model}</td>
+                        <td>${v.first_name || 'Unknown'} ${v.last_name || ''}</td>
+                        <td>${v.plate || 'N/A'}</td>
+                        <td>${v.fuel || 0}%</td>
+                        <td>${v.engine_health || 0}%</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="deleteVehicle(${v.id})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No vehicles found</td></tr>';
+            }
+        }
+
+        // Load vehicle stats
+        const statsResponse = await fetch('/api/vehicles/stats/summary');
+        const statsData = await statsResponse.json();
+        
+        if (statsData.success) {
+            document.getElementById('total-vehicles').textContent = statsData.stats.total_vehicles || 0;
+            document.getElementById('unique-models').textContent = statsData.stats.unique_models || 0;
+            document.getElementById('avg-fuel').textContent = Math.round(statsData.stats.avg_fuel || 0) + '%';
+        }
+    } catch (error) {
+        console.error('Vehicles load error:', error);
+        showNotification('Failed to load vehicles', 'danger');
+    }
+}
+
+async function deleteVehicle(vehicleId) {
+    if (!confirm('Delete this vehicle permanently?')) return;
+
+    try {
+        const response = await fetch(`/api/vehicles/${vehicleId}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Vehicle deleted successfully', 'success');
+            loadVehicles();
+        }
+    } catch (error) {
+        showNotification('Failed to delete vehicle', 'danger');
+    }
+}
+
+// Economy Management
+async function loadEconomy() {
+    try {
+        const response = await fetch('/api/economy/stats');
+        const data = await response.json();
+
+        if (data.success) {
+            const overview = data.overview || {};
+            document.getElementById('total-cash').textContent = '$' + (overview.total_cash || 0).toLocaleString();
+            document.getElementById('total-bank').textContent = '$' + (overview.total_bank || 0).toLocaleString();
+            document.getElementById('total-dirty').textContent = '$' + (overview.total_dirty || 0).toLocaleString();
+            const avgWealth = (overview.avg_cash || 0) + (overview.avg_bank || 0);
+            document.getElementById('avg-wealth').textContent = '$' + Math.round(avgWealth).toLocaleString();
+
+            // Richest players
+            const richest = data.richest || [];
+            const richestTbody = document.getElementById('richest-tbody');
+            if (richest.length > 0) {
+                richestTbody.innerHTML = richest.map((p, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${p.first_name} ${p.last_name}</td>
+                        <td>$${(p.total_wealth || 0).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } else {
+                richestTbody.innerHTML = '<tr><td colspan="3" class="text-center">No data</td></tr>';
+            }
+
+            // Recent transactions
+            const transactions = data.transactions || [];
+            const recentDiv = document.getElementById('recent-transactions');
+            if (transactions.length > 0) {
+                recentDiv.innerHTML = transactions.map(t => `
+                    <div style="padding: 10px; border-bottom: 1px solid #e5e7eb;">
+                        <strong>${t.transaction_type}</strong>: $${(t.total_amount || 0).toLocaleString()}
+                        <br><small>${t.count} transactions</small>
+                    </div>
+                `).join('');
+            } else {
+                recentDiv.innerHTML = '<p class="text-center">No recent transactions</p>';
+            }
+        }
+
+        // Load all transactions
+        const transResponse = await fetch('/api/economy/transactions?limit=50');
+        const transData = await transResponse.json();
+        
+        if (transData.success) {
+            const transTbody = document.getElementById('transactions-tbody');
+            const transactions = transData.transactions || [];
+            
+            if (transactions.length > 0) {
+                transTbody.innerHTML = transactions.map(t => `
+                    <tr>
+                        <td>${formatTime(t.created_at)}</td>
+                        <td>${t.first_name || 'Unknown'} ${t.last_name || ''}</td>
+                        <td>${t.transaction_type}</td>
+                        <td class="${t.transaction_type === 'earn' ? 'text-success' : 'text-danger'}">
+                            ${t.transaction_type === 'earn' ? '+' : '-'}$${(t.amount || 0).toLocaleString()}
+                        </td>
+                        <td>${t.source || 'N/A'}</td>
+                    </tr>
+                `).join('');
+            } else {
+                transTbody.innerHTML = '<tr><td colspan="5" class="text-center">No transactions</td></tr>';
+            }
+        }
+    } catch (error) {
+        console.error('Economy load error:', error);
+        showNotification('Failed to load economy data', 'danger');
+    }
+}
+
+// Analytics
+async function loadAnalytics() {
+    try {
+        // Performance stats
+        const perfResponse = await fetch('/api/analytics/performance');
+        const perfData = await perfResponse.json();
+
+        if (perfData.success) {
+            const stats = perfData.stats;
+            const hours = Math.floor((stats.uptime || 0) / 3600);
+            const minutes = Math.floor(((stats.uptime || 0) % 3600) / 60);
+            document.getElementById('perf-uptime').textContent = `${hours}h ${minutes}m`;
+            document.getElementById('perf-memory').textContent = Math.round((stats.memory?.heapUsed || 0) / 1024 / 1024) + ' MB';
+            document.getElementById('perf-platform').textContent = stats.platform || 'Unknown';
+            document.getElementById('perf-node').textContent = stats.nodeVersion || 'Unknown';
+        }
+
+        // Jobs
+        const jobsResponse = await fetch('/api/analytics/jobs');
+        const jobsData = await jobsResponse.json();
+
+        if (jobsData.success) {
+            const jobsList = document.getElementById('jobs-list');
+            const jobs = jobsData.jobs || [];
+            
+            if (jobs.length > 0) {
+                jobsList.innerHTML = jobs.map(j => `
+                    <div style="padding: 10px; border-bottom: 1px solid #e5e7eb;">
+                        <strong>${j.job}</strong>
+                        <br><small>${j.player_count} players • Avg Rank: ${Math.round(j.avg_rank || 0)}</small>
+                    </div>
+                `).join('');
+            } else {
+                jobsList.innerHTML = '<p class="text-center">No job data</p>';
+            }
+        }
+
+        // Activity
+        const activityResponse = await fetch('/api/analytics/activity');
+        const activityData = await activityResponse.json();
+
+        if (activityData.success) {
+            const activityTbody = document.getElementById('activity-tbody');
+            const activity = activityData.daily || [];
+            
+            if (activity.length > 0) {
+                activityTbody.innerHTML = activity.map(a => `
+                    <tr>
+                        <td>${formatDate(a.date)}</td>
+                        <td>${a.unique_players || 0}</td>
+                        <td>${a.total_sessions || 0}</td>
+                        <td>${Math.round(a.total_playtime || 0)} min</td>
+                    </tr>
+                `).join('');
+            } else {
+                activityTbody.innerHTML = '<tr><td colspan="4" class="text-center">No activity data</td></tr>';
+            }
+        }
+    } catch (error) {
+        console.error('Analytics load error:', error);
+        showNotification('Failed to load analytics', 'danger');
+    }
+}
+
+// Leaderboards
+async function loadLeaderboards() {
+    try {
+        const response = await fetch('/api/analytics/leaderboards');
+        const data = await response.json();
+
+        if (data.success) {
+            // Richest
+            const richestDiv = document.getElementById('lb-richest');
+            const richest = data.richest || [];
+            if (richest.length > 0) {
+                richestDiv.innerHTML = richest.map((p, i) => `
+                    <div style="padding: 15px; border-bottom: 1px solid #e5e7eb;">
+                        <span style="font-size: 20px; font-weight: bold; color: gold;">#${i + 1}</span>
+                        <strong>${p.first_name} ${p.last_name}</strong>
+                        <br><small>$${(p.wealth || 0).toLocaleString()}</small>
+                    </div>
+                `).join('');
+            } else {
+                richestDiv.innerHTML = '<p class="text-center">No data</p>';
+            }
+
+            // Most Active
+            const activeDiv = document.getElementById('lb-active');
+            const active = data.mostActive || [];
+            if (active.length > 0) {
+                activeDiv.innerHTML = active.map((p, i) => `
+                    <div style="padding: 15px; border-bottom: 1px solid #e5e7eb;">
+                        <span style="font-size: 20px; font-weight: bold; color: #10b981;">#${i + 1}</span>
+                        <strong>${p.first_name} ${p.last_name}</strong>
+                        <br><small>${Math.round(p.playtime || 0)} minutes</small>
+                    </div>
+                `).join('');
+            } else {
+                activeDiv.innerHTML = '<p class="text-center">No data</p>';
+            }
+
+            // Top Level
+            const levelDiv = document.getElementById('lb-level');
+            const topLevel = data.topLevel || [];
+            if (topLevel.length > 0) {
+                levelDiv.innerHTML = topLevel.map((p, i) => `
+                    <div style="padding: 15px; border-bottom: 1px solid #e5e7eb;">
+                        <span style="font-size: 20px; font-weight: bold; color: #3b82f6;">#${i + 1}</span>
+                        <strong>${p.first_name} ${p.last_name}</strong>
+                        <br><small>Level ${p.level} (${p.experience} XP)</small>
+                    </div>
+                `).join('');
+            } else {
+                levelDiv.innerHTML = '<p class="text-center">No data</p>';
+            }
+        }
+
+        // Achievement stats
+        const achieveResponse = await fetch('/api/analytics/achievements');
+        const achieveData = await achieveResponse.json();
+
+        if (achieveData.success) {
+            const achieveTbody = document.getElementById('achievements-tbody');
+            const achievements = achieveData.achievements || [];
+            
+            if (achievements.length > 0) {
+                achieveTbody.innerHTML = achievements.map(a => `
+                    <tr>
+                        <td>${a.name}</td>
+                        <td>${a.category}</td>
+                        <td>${a.points}</td>
+                        <td>${a.unlocked_count || 0}</td>
+                        <td>${a.unlock_percentage || 0}%</td>
+                    </tr>
+                `).join('');
+            } else {
+                achieveTbody.innerHTML = '<tr><td colspan="5" class="text-center">No achievements</td></tr>';
+            }
+        }
+    } catch (error) {
+        console.error('Leaderboards load error:', error);
+        showNotification('Failed to load leaderboards', 'danger');
+    }
+}
+
+// Server Control Functions
+async function sendBroadcast() {
+    const message = document.getElementById('broadcast-message').value;
+    if (!message || message.trim() === '') {
+        showNotification('Please enter a message', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/server-control/broadcast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, admin: state.username || 'Admin' })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Broadcast sent successfully', 'success');
+            document.getElementById('broadcast-message').value = '';
+        }
+    } catch (error) {
+        showNotification('Failed to send broadcast', 'danger');
+    }
+}
+
+async function giveMoney() {
+    const characterId = document.getElementById('money-character-id').value;
+    const amount = document.getElementById('money-amount').value;
+
+    if (!characterId || !amount) {
+        showNotification('Please enter both character ID and amount', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/server-control/give-money', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ character_id: characterId, amount: parseInt(amount), admin: state.username || 'Admin' })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification(data.message, 'success');
+            document.getElementById('money-character-id').value = '';
+            document.getElementById('money-amount').value = '';
+        } else {
+            showNotification(data.error || 'Failed to give money', 'danger');
+        }
+    } catch (error) {
+        showNotification('Failed to give money', 'danger');
+    }
+}
+
+async function setPlayerLevel() {
+    const characterId = document.getElementById('level-character-id').value;
+    const level = document.getElementById('level-value').value;
+
+    if (!characterId || !level) {
+        showNotification('Please enter both character ID and level', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/server-control/set-level', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ character_id: characterId, level: parseInt(level), admin: state.username || 'Admin' })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification(data.message, 'success');
+            document.getElementById('level-character-id').value = '';
+            document.getElementById('level-value').value = '';
+        } else {
+            showNotification(data.error || 'Failed to set level', 'danger');
+        }
+    } catch (error) {
+        showNotification('Failed to set level', 'danger');
+    }
+}
+
+async function healAllPlayers() {
+    if (!confirm('Heal all online players?')) return;
+
+    try {
+        const response = await fetch('/api/server-control/heal-all', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin: state.username || 'Admin' })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Heal all command sent', 'success');
+        }
+    } catch (error) {
+        showNotification('Failed to heal all players', 'danger');
+    }
+}
+
+async function clearVehicles() {
+    if (!confirm('Clear all spawned vehicles? This cannot be undone!')) return;
+
+    try {
+        const response = await fetch('/api/server-control/clear-vehicles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin: state.username || 'Admin' })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Clear vehicles command sent', 'success');
+        }
+    } catch (error) {
+        showNotification('Failed to clear vehicles', 'danger');
+    }
+}
+
+let maintenanceMode = false;
+async function toggleMaintenance() {
+    maintenanceMode = !maintenanceMode;
+
+    try {
+        const response = await fetch('/api/server-control/maintenance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled: maintenanceMode, admin: state.username || 'Admin' })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification(data.message, 'success');
+        }
+    } catch (error) {
+        showNotification('Failed to toggle maintenance mode', 'danger');
+    }
+}
+
+// Bans & Reports
+async function loadBans() {
+    try {
+        const response = await fetch('/api/bans');
+        const data = await response.json();
+
+        if (data.success) {
+            const tbody = document.getElementById('bans-tbody');
+            const bans = data.bans || [];
+            
+            if (bans.length > 0) {
+                tbody.innerHTML = bans.map(b => `
+                    <tr>
+                        <td>${b.social_club || 'Unknown'}</td>
+                        <td>${b.reason || 'No reason'}</td>
+                        <td>${b.admin_name || 'System'}</td>
+                        <td>${formatDate(b.banned_at)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-success" onclick="unbanBySocialClub('${b.social_club}')">Unban</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No active bans</td></tr>';
+            }
+        }
+    } catch (error) {
+        console.error('Bans load error:', error);
+        showNotification('Failed to load bans', 'danger');
+    }
+}
+
+async function loadReports() {
+    try {
+        const response = await fetch('/api/reports');
+        const data = await response.json();
+
+        if (data.success) {
+            const tbody = document.getElementById('reports-tbody');
+            const reports = data.reports || [];
+            
+            if (reports.length > 0) {
+                tbody.innerHTML = reports.map(r => `
+                    <tr>
+                        <td>${r.reporter_name || 'Unknown'}</td>
+                        <td>${r.reported_name || 'Unknown'}</td>
+                        <td>${r.reason || 'No reason'}</td>
+                        <td>
+                            <span class="badge badge-${r.status === 'pending' ? 'warning' : r.status === 'resolved' ? 'success' : 'secondary'}">
+                                ${r.status}
+                            </span>
+                        </td>
+                        <td>
+                            ${r.status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="resolveReport(${r.id})">Resolve</button>` : '-'}
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No reports</td></tr>';
+            }
+        }
+    } catch (error) {
+        console.error('Reports load error:', error);
+        showNotification('Failed to load reports', 'danger');
+    }
+}
+
+async function unbanBySocialClub(socialClub) {
+    if (!confirm(`Unban ${socialClub}?`)) return;
+
+    try {
+        const response = await fetch(`/api/bans/${socialClub}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Player unbanned successfully', 'success');
+            loadBans();
+        }
+    } catch (error) {
+        showNotification('Failed to unban player', 'danger');
+    }
+}
+
+async function resolveReport(reportId) {
+    try {
+        const response = await fetch(`/api/reports/${reportId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'resolved' })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Report resolved', 'success');
+            loadReports();
+        }
+    } catch (error) {
+        showNotification('Failed to resolve report', 'danger');
+    }
 }
 
 // Auto-refresh

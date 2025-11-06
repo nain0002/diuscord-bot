@@ -205,7 +205,13 @@ app.use('/api/whitelist', authMiddleware, require('./routes/whitelist'));
 app.use('/api/bans', authMiddleware, require('./routes/bans'));
 app.use('/api/reports', authMiddleware, require('./routes/reports'));
 
-logger.info('All routes mounted');
+// RAGE:MP Essential Features
+app.use('/api/vehicles', authMiddleware, require('./routes/vehicles'));
+app.use('/api/economy', authMiddleware, require('./routes/economy'));
+app.use('/api/analytics', authMiddleware, require('./routes/analytics'));
+app.use('/api/server-control', authMiddleware, require('./routes/server-control'));
+
+logger.info('All routes mounted (including RAGE:MP essentials)');
 
 // ═══════════════════════════════════════════════════════════════════════
 // ENHANCED MONITORING ENDPOINTS
