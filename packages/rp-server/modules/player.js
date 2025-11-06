@@ -3,6 +3,30 @@
  * Handles player data and related functions
  */
 
+// Check if RAGE:MP environment is available
+if (typeof mp === 'undefined') {
+    console.error('');
+    console.error('═══════════════════════════════════════════════════════════════');
+    console.error('  ❌ RAGE:MP SERVER NOT PROPERLY INSTALLED');
+    console.error('═══════════════════════════════════════════════════════════════');
+    console.error('');
+    console.error('  You need to download RAGE:MP Server from:');
+    console.error('  https://rage.mp/');
+    console.error('');
+    console.error('  Steps:');
+    console.error('  1. Go to https://rage.mp/');
+    console.error('  2. Click "Downloads"');
+    console.error('  3. Download "Server Package for Windows"');
+    console.error('  4. Extract ALL files to C:\\RAGEMP\\server-files\\');
+    console.error('  5. Make sure node.dll exists in that folder');
+    console.error('  6. Run ragemp-server.exe (NOT node)');
+    console.error('');
+    console.error('═══════════════════════════════════════════════════════════════');
+    console.error('');
+    module.exports = {};
+    return;
+}
+
 const database = require('./database');
 
 // Player data storage
