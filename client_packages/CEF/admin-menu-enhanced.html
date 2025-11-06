@@ -539,71 +539,71 @@
                 </div>
                 <div class="admin-nav">
                     <div class="nav-section-title">Overview</div>
-                    <div class="nav-item active" onclick="showSection('dashboard')">
+                    <div class="nav-item active" onclick="showSection('dashboard', this)">
                         <span class="nav-icon">📊</span>
                         <span>Dashboard</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('players')">
+                    <div class="nav-item" onclick="showSection('players', this)">
                         <span class="nav-icon">👥</span>
                         <span>Players</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('reports')">
+                    <div class="nav-item" onclick="showSection('reports', this)">
                         <span class="nav-icon">📋</span>
                         <span>Reports</span>
                     </div>
                     
                     <div class="nav-section-title">Server Management</div>
-                    <div class="nav-item" onclick="showSection('vehicles')">
+                    <div class="nav-item" onclick="showSection('vehicles', this)">
                         <span class="nav-icon">🚗</span>
                         <span>Vehicles</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('objects')">
+                    <div class="nav-item" onclick="showSection('objects', this)">
                         <span class="nav-icon">📦</span>
                         <span>Objects</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('weapons')">
+                    <div class="nav-item" onclick="showSection('weapons', this)">
                         <span class="nav-icon">🔫</span>
                         <span>Weapons</span>
                     </div>
                     
                     <div class="nav-section-title">World</div>
-                    <div class="nav-item" onclick="showSection('teleport')">
+                    <div class="nav-item" onclick="showSection('teleport', this)">
                         <span class="nav-icon">📍</span>
                         <span>Teleport</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('weather')">
+                    <div class="nav-item" onclick="showSection('weather', this)">
                         <span class="nav-icon">🌤️</span>
                         <span>Weather/Time</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('world')">
+                    <div class="nav-item" onclick="showSection('world', this)">
                         <span class="nav-icon">🌍</span>
                         <span>World Options</span>
                     </div>
                     
                     <div class="nav-section-title">Moderation</div>
-                    <div class="nav-item" onclick="showSection('punishments')">
+                    <div class="nav-item" onclick="showSection('punishments', this)">
                         <span class="nav-icon">⚠️</span>
                         <span>Punishments</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('whitelist')">
+                    <div class="nav-item" onclick="showSection('whitelist', this)">
                         <span class="nav-icon">✅</span>
                         <span>Whitelist</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('logs')">
+                    <div class="nav-item" onclick="showSection('logs', this)">
                         <span class="nav-icon">📝</span>
                         <span>Chat Logs</span>
                     </div>
                     
                     <div class="nav-section-title">Tools</div>
-                    <div class="nav-item" onclick="showSection('noclip')">
+                    <div class="nav-item" onclick="showSection('noclip', this)">
                         <span class="nav-icon">✈️</span>
                         <span>NoClip/God</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('spectate')">
+                    <div class="nav-item" onclick="showSection('spectate', this)">
                         <span class="nav-icon">👁️</span>
                         <span>Spectate</span>
                     </div>
-                    <div class="nav-item" onclick="showSection('screenshot')">
+                    <div class="nav-item" onclick="showSection('screenshot', this)">
                         <span class="nav-icon">📸</span>
                         <span>Screenshots</span>
                     </div>
@@ -705,9 +705,9 @@
                     <!-- Vehicles Section -->
                     <div class="section" id="vehicles">
                         <div class="tab-nav">
-                            <button class="tab-btn active" onclick="switchVehicleTab('spawn')">Spawn Vehicle</button>
-                            <button class="tab-btn" onclick="switchVehicleTab('manage')">Manage Vehicles</button>
-                            <button class="tab-btn" onclick="switchVehicleTab('favorites')">Favorites</button>
+                            <button class="tab-btn active" onclick="switchVehicleTab('spawn', this)">Spawn Vehicle</button>
+                            <button class="tab-btn" onclick="switchVehicleTab('manage', this)">Manage Vehicles</button>
+                            <button class="tab-btn" onclick="switchVehicleTab('favorites', this)">Favorites</button>
                         </div>
 
                         <div class="tab-content active" id="spawn-tab">

@@ -160,10 +160,10 @@ const adminCommands = {
             const ip = player.ip;
             
             try {
-                // Add to ban table
+                // Add to ban table (adjust columns to match actual table structure)
                 await db.execute(
-                    'INSERT INTO bans (social_club, ip_address, reason, banned_by, banned_at) VALUES (?, ?, ?, ?, NOW())',
-                    [socialClub, ip, reason, adminName]
+                    'INSERT INTO bans (social_club, reason, admin_name, banned_at) VALUES (?, ?, ?, NOW())',
+                    [socialClub, reason, adminName]
                 );
                 
                 // Log action
@@ -351,22 +351,23 @@ const adminCommands = {
             case 'traffic':
                 trafficEnabled = !trafficEnabled;
                 mp.players.forEach(p => {
-                    p.call('toggleTraffic', [trafficEnabled]);
+                    p.call('setTrafficEnabled', [trafficEnabled]);
                 });
-                break;
+                return trafficEnabled;
             case 'peds':
                 pedsEnabled = !pedsEnabled;
                 mp.players.forEach(p => {
-                    p.call('togglePeds', [pedsEnabled]);
+                    p.call('setPedsEnabled', [pedsEnabled]);
                 });
-                break;
+                return pedsEnabled;
             case 'police':
                 policeEnabled = !policeEnabled;
                 mp.players.forEach(p => {
-                    p.call('togglePolice', [policeEnabled]);
+                    p.call('setPoliceEnabled', [policeEnabled]);
                 });
-                break;
+                return policeEnabled;
         }
+        return false;
     },
 
     // Add chat log
@@ -439,17 +440,25 @@ function getUptime() {
 
 // Event handlers
 mp.events.add('getAdminStatistics', async (player) => {
-    if (!player.getVariable('is_admin')) return;
-    
-    const stats = await adminCommands.getStatistics();
-    player.call('updateAdminStats', [stats]);
+    try {
+        if (!player || !player.getVariable('is_admin')) return;
+        
+        const stats = await adminCommands.getStatistics();
+        player.call('updateAdminStats', [stats]);
+    } catch (error) {
+        console.error('[Admin] Error in getAdminStatistics:', error);
+    }
 });
 
 mp.events.add('getOnlinePlayerList', (player) => {
-    if (!player.getVariable('is_admin')) return;
-    
-    const players = adminCommands.getOnlinePlayers();
-    player.call('updateAdminPlayerList', [players]);
+    try {
+        if (!player || !player.getVariable('is_admin')) return;
+        
+        const players = adminCommands.getOnlinePlayers();
+        player.call('updateAdminPlayerList', [players]);
+    } catch (error) {
+        console.error('[Admin] Error in getOnlinePlayerList:', error);
+    }
 });
 
 mp.events.add('adminPlayerAction', async (player, action, targetId) => {
@@ -609,7 +618,8 @@ mp.events.add('adminSetTime', (player, hour) => {
 
 mp.events.add('adminToggleWorld', (player, type) => {
     if (!player.getVariable('is_admin')) return;
-    adminCommands.toggleWorld(type);
+    const newState = adminCommands.toggleWorld(type);
+    player.outputChatBox(`!{#00FF00}${type.charAt(0).toUpperCase() + type.slice(1)} ${newState ? 'enabled' : 'disabled'}.`);
 });
 
 mp.events.add('adminWarn', async (player, targetId, reason) => {
@@ -701,6 +711,57 @@ mp.events.add('handleReport', (player, reportId, action) => {
 mp.events.add('playerChat', (player, message) => {
     const playerName = player.getVariable('characterName') || player.name;
     adminCommands.addChatLog(playerName, message);
+});
+
+// Spectate handlers
+mp.events.add('startSpectate', (player, targetId) => {
+    if (!player.getVariable('is_admin')) return;
+    
+    const target = mp.players.at(targetId);
+    if (target) {
+        player.setVariable('spectating', targetId);
+        player.call('spectatePlayer', [target.position, target.heading]);
+        player.outputChatBox(`!{#00FF00}Now spectating ${target.name}`);
+    }
+});
+
+mp.events.add('stopSpectate', (player) => {
+    if (!player.getVariable('is_admin')) return;
+    
+    player.setVariable('spectating', null);
+    player.call('stopSpectating');
+    player.outputChatBox('!{#00FF00}Stopped spectating');
+});
+
+// Screenshot handler
+mp.events.add('takeScreenshot', (player, targetId) => {
+    if (!player.getVariable('is_admin')) return;
+    
+    const target = mp.players.at(targetId);
+    if (target) {
+        // Note: Screenshot functionality requires additional setup on client
+        target.call('takeScreenshotRequest');
+        player.outputChatBox(`!{#00FF00}Screenshot requested from ${target.name}`);
+    }
+});
+
+// World toggle client-side events (send to all players)
+mp.events.add('toggleTraffic', (enabled) => {
+    mp.players.forEach(p => {
+        p.call('setTrafficEnabled', [enabled]);
+    });
+});
+
+mp.events.add('togglePeds', (enabled) => {
+    mp.players.forEach(p => {
+        p.call('setPedsEnabled', [enabled]);
+    });
+});
+
+mp.events.add('togglePolice', (enabled) => {
+    mp.players.forEach(p => {
+        p.call('setPoliceEnabled', [enabled]);
+    });
 });
 
 console.log('[Admin Commands Enhanced] Loaded successfully');

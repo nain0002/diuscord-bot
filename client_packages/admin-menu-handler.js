@@ -9,8 +9,9 @@ function createAdminMenu() {
     }
 }
 
-// Open admin menu (F6 for admins)
-mp.keys.bind(0x75, false, () => { // F6 key
+// NOTE: F6 keybind disabled - Enhanced admin menu handles this
+// Basic admin menu is kept for backward compatibility but not bound to any key
+function toggleBasicAdminMenu() {
     const isAdmin = mp.players.local.getVariable('isAdmin');
     
     if (isAdmin) {
@@ -30,7 +31,7 @@ mp.keys.bind(0x75, false, () => { // F6 key
     } else {
         mp.events.call('showNotification', 'You are not an admin!', 'error');
     }
-});
+}
 
 // Get admin stats
 mp.events.add('getAdminStats', () => {

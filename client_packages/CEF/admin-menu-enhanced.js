@@ -21,14 +21,16 @@ function closeAdmin() {
 }
 
 // Show section
-function showSection(section) {
+function showSection(section, element) {
     // Hide all sections
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     
     // Show selected section
     document.getElementById(section).classList.add('active');
-    event.target.closest('.nav-item').classList.add('active');
+    if (element) {
+        element.classList.add('active');
+    }
     
     // Update header title
     const titles = {
@@ -133,12 +135,17 @@ function adminAction(action) {
 }
 
 // Vehicle tab switching
-function switchVehicleTab(tab) {
+function switchVehicleTab(tab, element) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     
-    event.target.classList.add('active');
-    document.getElementById(`${tab}-tab`).classList.add('active');
+    if (element) {
+        element.classList.add('active');
+    }
+    const tabElement = document.getElementById(`${tab}-tab`);
+    if (tabElement) {
+        tabElement.classList.add('active');
+    }
 }
 
 // Spawn custom vehicle
@@ -148,8 +155,15 @@ function spawnCustomVehicle() {
     const g = document.getElementById('colorG').value;
     const b = document.getElementById('colorB').value;
     
-    if (model) {
-        mp.trigger('adminSpawnVehicle', model, [parseInt(r), parseInt(g), parseInt(b)]);
+    if (model && model.trim() !== '') {
+        const color = [
+            parseInt(r) || 255,
+            parseInt(g) || 255,
+            parseInt(b) || 255
+        ];
+        mp.trigger('adminSpawnVehicle', model.toLowerCase(), color);
+    } else {
+        alert('Please enter a vehicle model name');
     }
 }
 
@@ -183,8 +197,10 @@ function teleportTo(location) {
     };
     
     const coords = locations[location];
-    if (coords) {
+    if (coords && coords.length === 3) {
         mp.trigger('adminTeleport', coords[0], coords[1], coords[2]);
+    } else {
+        console.error('Invalid location:', location);
     }
 }
 
@@ -195,6 +211,8 @@ function teleportToCoords() {
     
     if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
         mp.trigger('adminTeleport', x, y, z);
+    } else {
+        alert('Please enter valid coordinates (numbers only)');
     }
 }
 
@@ -208,6 +226,8 @@ function setTime() {
     const hour = parseInt(document.getElementById('timeHour').value);
     if (!isNaN(hour) && hour >= 0 && hour <= 23) {
         mp.trigger('adminSetTime', hour);
+    } else {
+        alert('Please enter a valid hour (0-23)');
     }
 }
 
@@ -221,8 +241,10 @@ function warnPlayer() {
     const playerId = parseInt(document.getElementById('punishPlayerId').value);
     const reason = document.getElementById('punishReason').value;
     
-    if (!isNaN(playerId) && reason) {
+    if (!isNaN(playerId) && reason && reason.trim() !== '') {
         mp.trigger('adminWarn', playerId, reason);
+    } else {
+        alert('Please enter a valid player ID and reason');
     }
 }
 
@@ -230,8 +252,10 @@ function mutePlayer() {
     const playerId = parseInt(document.getElementById('punishPlayerId').value);
     const reason = document.getElementById('punishReason').value;
     
-    if (!isNaN(playerId) && reason) {
+    if (!isNaN(playerId) && reason && reason.trim() !== '') {
         mp.trigger('adminMute', playerId, reason);
+    } else {
+        alert('Please enter a valid player ID and reason');
     }
 }
 
@@ -239,8 +263,10 @@ function jailPlayer() {
     const playerId = parseInt(document.getElementById('punishPlayerId').value);
     const reason = document.getElementById('punishReason').value;
     
-    if (!isNaN(playerId) && reason) {
+    if (!isNaN(playerId) && reason && reason.trim() !== '') {
         mp.trigger('adminJail', playerId, reason);
+    } else {
+        alert('Please enter a valid player ID and reason');
     }
 }
 
@@ -248,10 +274,12 @@ function kickPlayer() {
     const playerId = parseInt(document.getElementById('punishPlayerId').value);
     const reason = document.getElementById('punishReason').value;
     
-    if (!isNaN(playerId) && reason) {
+    if (!isNaN(playerId) && reason && reason.trim() !== '') {
         if (confirm(`Are you sure you want to kick player #${playerId}?`)) {
             mp.trigger('adminKick', playerId, reason);
         }
+    } else {
+        alert('Please enter a valid player ID and reason');
     }
 }
 
@@ -259,10 +287,12 @@ function banPlayer() {
     const playerId = parseInt(document.getElementById('punishPlayerId').value);
     const reason = document.getElementById('punishReason').value;
     
-    if (!isNaN(playerId) && reason) {
+    if (!isNaN(playerId) && reason && reason.trim() !== '') {
         if (confirm(`Are you sure you want to BAN player #${playerId}?`)) {
             mp.trigger('adminBan', playerId, reason);
         }
+    } else {
+        alert('Please enter a valid player ID and reason');
     }
 }
 

@@ -23,20 +23,35 @@ function initAdminMenu() {
 
 // Toggle admin menu (F6 key)
 mp.keys.bind(0x75, false, function() { // F6
-    const player = mp.players.local;
-    if (!player || !player.getVariable('is_admin')) return;
-    
-    if (!adminMenuBrowser) {
-        initAdminMenu();
-    }
-    
-    adminMenuOpen = !adminMenuOpen;
-    adminMenuBrowser.active = adminMenuOpen;
-    mp.gui.cursor.visible = adminMenuOpen;
-    
-    if (adminMenuOpen) {
-        mp.events.callRemote('getAdminStatistics');
-        mp.events.callRemote('getOnlinePlayerList');
+    try {
+        const player = mp.players.local;
+        if (!player) return;
+        
+        const isAdmin = player.getVariable('is_admin');
+        if (!isAdmin) {
+            mp.gui.chat.push('!{#FF0000}You must be an admin to use this menu!');
+            return;
+        }
+        
+        if (!adminMenuBrowser) {
+            initAdminMenu();
+        }
+        
+        if (!adminMenuBrowser) {
+            console.error('[Admin Menu] Failed to initialize browser');
+            return;
+        }
+        
+        adminMenuOpen = !adminMenuOpen;
+        adminMenuBrowser.active = adminMenuOpen;
+        mp.gui.cursor.visible = adminMenuOpen;
+        
+        if (adminMenuOpen) {
+            mp.events.callRemote('getAdminStatistics');
+            mp.events.callRemote('getOnlinePlayerList');
+        }
+    } catch (error) {
+        console.error('[Admin Menu] Error toggling menu:', error);
     }
 });
 
@@ -71,29 +86,45 @@ mp.events.add('requestReports', () => {
 
 // Update stats
 mp.events.add('updateAdminStats', (data) => {
-    if (adminMenuBrowser) {
-        adminMenuBrowser.execute(`updateStats(${JSON.stringify(data)})`);
+    try {
+        if (adminMenuBrowser && typeof data === 'object') {
+            adminMenuBrowser.execute(`updateStats(${JSON.stringify(data)})`);
+        }
+    } catch (error) {
+        console.error('[Admin Menu] Error updating stats:', error);
     }
 });
 
 // Update player list
 mp.events.add('updateAdminPlayerList', (data) => {
-    if (adminMenuBrowser) {
-        adminMenuBrowser.execute(`updatePlayerList(${JSON.stringify(data)})`);
+    try {
+        if (adminMenuBrowser && Array.isArray(data)) {
+            adminMenuBrowser.execute(`updatePlayerList(${JSON.stringify(data)})`);
+        }
+    } catch (error) {
+        console.error('[Admin Menu] Error updating player list:', error);
     }
 });
 
 // Update chat logs
 mp.events.add('updateChatLogs', (data) => {
-    if (adminMenuBrowser) {
-        adminMenuBrowser.execute(`updateChatLogs(${JSON.stringify(data)})`);
+    try {
+        if (adminMenuBrowser && Array.isArray(data)) {
+            adminMenuBrowser.execute(`updateChatLogs(${JSON.stringify(data)})`);
+        }
+    } catch (error) {
+        console.error('[Admin Menu] Error updating chat logs:', error);
     }
 });
 
 // Update reports
 mp.events.add('updateReports', (data) => {
-    if (adminMenuBrowser) {
-        adminMenuBrowser.execute(`updateReports(${JSON.stringify(data)})`);
+    try {
+        if (adminMenuBrowser && Array.isArray(data)) {
+            adminMenuBrowser.execute(`updateReports(${JSON.stringify(data)})`);
+        }
+    } catch (error) {
+        console.error('[Admin Menu] Error updating reports:', error);
     }
 });
 
@@ -124,10 +155,15 @@ mp.events.add('adminGiveWeapon', (weapon) => {
 
 // Teleport
 mp.events.add('adminTeleport', (x, y, z) => {
-    const player = mp.players.local;
-    if (player) {
-        player.position = new mp.Vector3(x, y, z);
-        mp.game.ui.displayRadar(true);
+    try {
+        const player = mp.players.local;
+        if (player && typeof x === 'number' && typeof y === 'number' && typeof z === 'number') {
+            player.position = new mp.Vector3(x, y, z);
+            mp.game.ui.displayRadar(true);
+            mp.gui.chat.push(`!{#00FF00}Teleported to: ${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}`);
+        }
+    } catch (error) {
+        console.error('[Admin Menu] Error teleporting:', error);
     }
 });
 
@@ -302,6 +338,13 @@ mp.events.add('adminTakeScreenshot', (playerId) => {
     mp.events.callRemote('takeScreenshot', playerId);
 });
 
+// Client-side screenshot request handler
+mp.events.add('takeScreenshotRequest', () => {
+    // Take screenshot and save locally
+    // Note: This would require additional implementation
+    mp.gui.chat.push('!{#FFA500}Admin requested a screenshot');
+});
+
 // Handle report
 mp.events.add('adminHandleReport', (reportId, action) => {
     mp.events.callRemote('handleReport', reportId, action);
@@ -310,6 +353,19 @@ mp.events.add('adminHandleReport', (reportId, action) => {
 // Show notifications from server
 mp.events.add('showAdminNotification', (message, type) => {
     mp.gui.chat.push(`[ADMIN] ${message}`);
+});
+
+// World toggle handlers
+mp.events.add('setTrafficEnabled', (enabled) => {
+    mp.game.gameplay.setVehicleDensityMultiplierThisFrame(enabled ? 1.0 : 0.0);
+});
+
+mp.events.add('setPedsEnabled', (enabled) => {
+    mp.game.gameplay.setPedDensityMultiplierThisFrame(enabled ? 1.0 : 0.0);
+});
+
+mp.events.add('setPoliceEnabled', (enabled) => {
+    mp.game.invoke('0xDB2A4E24FACC04E7', !enabled); // SET_CREATE_RANDOM_COPS
 });
 
 console.log('[Admin Menu Enhanced] Loaded successfully');
