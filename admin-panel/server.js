@@ -12,6 +12,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const WebSocketBridge = require('./websocket-bridge');
 
 const app = express();
 const server = http.createServer(app);
@@ -78,15 +79,19 @@ app.use('/api/logs', authMiddleware, logsRoutes);
 // Serve admin panel
 app.get('/', (req, res) => {
     if (req.session.isAuthenticated) {
-        res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+        res.sendFile(path.join(__dirname, 'public', 'modern-dashboard.html'));
     } else {
         res.sendFile(path.join(__dirname, 'public', 'login.html'));
     }
 });
 
 app.get('/dashboard', authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+    res.sendFile(path.join(__dirname, 'public', 'modern-dashboard.html'));
 });
+
+// Start WebSocket bridge for game server connection
+const wsBridge = new WebSocketBridge(3001);
+wsBridge.start();
 
 // WebSocket connection for real-time updates
 io.on('connection', (socket) => {
@@ -96,13 +101,26 @@ io.on('connection', (socket) => {
         if (data.authenticated) {
             socket.join('admins');
             console.log('[Admin Panel] Admin subscribed to updates');
+            
+            // Send initial server data
+            socket.emit('initialData', wsBridge.getServerData());
         }
+    });
+
+    // Handle admin commands
+    socket.on('adminCommand', (command) => {
+        console.log('[Admin Panel] Command received:', command.type);
+        // Commands will be forwarded through the bridge
+        wsBridge.handleAdminClientMessage(command);
     });
 
     socket.on('disconnect', () => {
         console.log('[Admin Panel] Client disconnected');
     });
 });
+
+// Make bridge available to routes
+app.set('wsBridge', wsBridge);
 
 // Make io available to routes
 app.set('io', io);

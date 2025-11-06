@@ -23,6 +23,7 @@ require('./modules/jobs');
 require('./modules/vehicles');
 require('./modules/admin');
 require('./modules/spawn');
+require('./modules/admin-bridge');
 
 console.log('=================================');
 console.log('Server Initialization Complete!');
