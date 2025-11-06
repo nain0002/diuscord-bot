@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking</title>
+    <link rel="stylesheet" href="css/banking.css">
+</head>
+<body>
+    <div class="container">
+        <div class="banking-box">
+            <h1>Banking Services</h1>
+            <button class="close-btn" onclick="closeMenu()">✕</button>
+            
+            <div id="message" class="message"></div>
+            
+            <div class="balance-display">
+                <div class="balance-item">
+                    <span class="label">Account Number:</span>
+                    <span class="value" id="accountNumber">-</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">Bank Balance:</span>
+                    <span class="value" id="bankBalance">$0</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">Cash:</span>
+                    <span class="value" id="cashBalance">$0</span>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('deposit')">Deposit</button>
+                <button class="tab-button" onclick="showTab('withdraw')">Withdraw</button>
+                <button class="tab-button" onclick="showTab('transfer')">Transfer</button>
+            </div>
+            
+            <div id="deposit-tab" class="tab-content active">
+                <input type="number" id="deposit-amount" placeholder="Amount" min="1" />
+                <button onclick="deposit()">Deposit Money</button>
+            </div>
+            
+            <div id="withdraw-tab" class="tab-content">
+                <input type="number" id="withdraw-amount" placeholder="Amount" min="1" />
+                <button onclick="withdraw()">Withdraw Money</button>
+            </div>
+            
+            <div id="transfer-tab" class="tab-content">
+                <input type="text" id="transfer-name" placeholder="Recipient Name (First_Last)" />
+                <input type="number" id="transfer-amount" placeholder="Amount" min="1" />
+                <button onclick="transfer()">Transfer Money</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/banking.js"></script>
+</body>
+</html>

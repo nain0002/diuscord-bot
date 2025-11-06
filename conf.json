@@ -1,0 +1,14 @@
+{
+  "maxplayers": 100,
+  "name": "RAGE:MP Roleplay Server",
+  "gamemode": "freeroam/roleplay",
+  "stream-distance": 500.0,
+  "port": 22005,
+  "announce": false,
+  "bind": "0.0.0.0",
+  "language": "en",
+  "url": "http://localhost",
+  "allow-cef-debugging": true,
+  "enable-nodejs": true,
+  "csharp": false
+}

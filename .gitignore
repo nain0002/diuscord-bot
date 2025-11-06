@@ -1,0 +1,33 @@
+# Environment variables
+.env
+
+# Node modules
+node_modules/
+
+# Server files (if using RAGE:MP server binaries)
+*.exe
+*.dll
+*.so
+
+# Logs
+*.log
+logs/
+
+# Database backups
+*.sql.backup
+backups/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
