@@ -33,11 +33,11 @@ router.get('/stats', async (req, res) => {
         res.json({
             success: true,
             stats: {
-                users: userCount[0].count,
-                characters: characterCount[0].count,
-                vehicles: vehicleCount[0].count,
-                todayTransactions: transactionCount[0].count,
-                onlinePlayers: onlinePlayers
+                users: (userCount && userCount[0]) ? userCount[0].count : 0,
+                characters: (characterCount && characterCount[0]) ? characterCount[0].count : 0,
+                vehicles: (vehicleCount && vehicleCount[0]) ? vehicleCount[0].count : 0,
+                todayTransactions: (transactionCount && transactionCount[0]) ? transactionCount[0].count : 0,
+                onlinePlayers: onlinePlayers || 0
             },
             server: {
                 uptime: Math.floor(uptime),
