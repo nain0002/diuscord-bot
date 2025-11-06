@@ -67,8 +67,19 @@ function spawnBotCars() {
 
 // Initialize bot cars after player ready
 mp.events.add('playerReady', () => {
+    console.log('[Bot Cars] Player ready, spawning bot cars in 3 seconds...');
     setTimeout(() => {
         spawnBotCars();
+    }, 3000);
+});
+
+// Alternative: Spawn on character loaded
+mp.events.add('characterLoaded', () => {
+    console.log('[Bot Cars] Character loaded, spawning bot cars in 2 seconds...');
+    setTimeout(() => {
+        if (botVehicles.length === 0) {
+            spawnBotCars();
+        }
     }, 2000);
 });
 

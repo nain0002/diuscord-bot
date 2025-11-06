@@ -36,6 +36,7 @@ database.connect();
 
 // Load all modules (these require 'mp' to be available)
 require('./modules/player');
+require('./modules/auth-fixed'); // Fixed authentication module
 require('./modules/registration');
 require('./modules/character');
 require('./modules/banking');

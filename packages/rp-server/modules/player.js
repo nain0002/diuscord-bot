@@ -51,8 +51,8 @@ mp.events.add('playerJoin', async (player) => {
     player.heading = 0;
     player.frozen = true;
     
-    // Trigger client-side login screen
-    player.call('client:showAuthScreen');
+    // Trigger client-side ready event (will show loading screen, then auth)
+    player.call('playerReady');
 });
 
 // Player quit event

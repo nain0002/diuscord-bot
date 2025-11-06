@@ -11,8 +11,25 @@ function createUserMenu() {
 
 // Toggle user menu with M key
 mp.keys.bind(0x4D, false, () => { // M key
+    // Check if player is logged in
+    const characterId = mp.players.local.getVariable('character_id');
+    if (!characterId) {
+        mp.gui.chat.push('!{#FF0000}[User Menu] You must be logged in!');
+        return;
+    }
+    
     if (!userMenuBrowser) {
         createUserMenu();
+        // Small delay for browser to initialize
+        setTimeout(() => {
+            userMenuOpen = true;
+            userMenuBrowser.execute('openMenu()');
+            mp.gui.cursor.visible = true;
+            mp.gui.chat.show(false);
+            // Request user data from server
+            mp.events.callRemote('requestUserMenuData');
+        }, 100);
+        return;
     }
     
     userMenuOpen = !userMenuOpen;
@@ -21,6 +38,8 @@ mp.keys.bind(0x4D, false, () => { // M key
         userMenuBrowser.execute('openMenu()');
         mp.gui.cursor.visible = true;
         mp.gui.chat.show(false);
+        // Request updated data from server
+        mp.events.callRemote('requestUserMenuData');
     } else {
         userMenuBrowser.execute('closeMenu()');
         mp.gui.cursor.visible = false;

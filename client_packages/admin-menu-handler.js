@@ -12,9 +12,10 @@ function createAdminMenu() {
 // NOTE: F6 keybind disabled - Enhanced admin menu handles this
 // Basic admin menu is kept for backward compatibility but not bound to any key
 function toggleBasicAdminMenu() {
+    const adminLevel = mp.players.local.getVariable('admin_level');
     const isAdmin = mp.players.local.getVariable('isAdmin');
     
-    if (isAdmin) {
+    if (isAdmin || (adminLevel && adminLevel > 0)) {
         if (!adminBrowser) {
             createAdminMenu();
         }

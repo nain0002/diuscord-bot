@@ -22,8 +22,9 @@ require('./modules/interactions.js'); // Must load last!
 console.log('[Client] Core modules loaded');
 
 // New enhanced handlers
+require('./loading-screen.js');    // Loading screen (shows first)
 require('./auth.js');              // Modern authentication handler
-require('./hud-handler.js');       // Modern live HUD
+// require('./hud-handler.js');    // HUD DISABLED per user request
 // require('./inventory.js');      // OLD inventory - DISABLED
 require('./inventory-handler-modern.js'); // MODERN INVENTORY SYSTEM ✨
 require('./admin-menu-handler.js'); // Admin menu (F6) - Basic
