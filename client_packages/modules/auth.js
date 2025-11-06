@@ -46,25 +46,52 @@ mp.events.add('auth:login', (username, password) => {
     mp.events.callRemote('server:login', username, password);
 });
 
+let characterBrowser = null;
+
 // Show character selection
 mp.events.add('client:showCharacterSelection', (charactersJson) => {
     closeAuthScreen();
     
+    if (characterBrowser) {
+        characterBrowser.destroy();
+    }
+    
     mp.gui.cursor.show(true, true);
     
-    const charBrowser = mp.browsers.new('package://CEF/character_selection.html');
+    characterBrowser = mp.browsers.new('package://CEF/character_selection.html');
     setTimeout(() => {
-        charBrowser.execute(`showCharacters(${charactersJson})`);
+        characterBrowser.execute(`showCharacters(${charactersJson})`);
     }, 500);
 });
+
+let creatorBrowser = null;
 
 // Show character creator
 mp.events.add('client:showCharacterCreator', () => {
     closeAuthScreen();
     
+    if (characterBrowser) {
+        characterBrowser.destroy();
+        characterBrowser = null;
+    }
+    
+    if (creatorBrowser) {
+        creatorBrowser.destroy();
+    }
+    
     mp.gui.cursor.show(true, true);
     
-    const creatorBrowser = mp.browsers.new('package://CEF/character_creator.html');
+    creatorBrowser = mp.browsers.new('package://CEF/character_creator.html');
+});
+
+// Handle showCreator event from character selection
+mp.events.add('character:showCreator', () => {
+    if (characterBrowser) {
+        characterBrowser.destroy();
+        characterBrowser = null;
+    }
+    
+    mp.events.call('client:showCharacterCreator');
 });
 
 // Character response
@@ -74,6 +101,16 @@ mp.events.add('client:characterResponse', (type, message) => {
 
 // Character loaded
 mp.events.add('client:characterLoaded', (characterDataJson) => {
+    // Close all auth/character browsers
+    if (characterBrowser) {
+        characterBrowser.destroy();
+        characterBrowser = null;
+    }
+    if (creatorBrowser) {
+        creatorBrowser.destroy();
+        creatorBrowser = null;
+    }
+    
     mp.gui.cursor.show(false, false);
     mp.game.ui.displayHud(true);
     mp.game.ui.displayRadar(true);

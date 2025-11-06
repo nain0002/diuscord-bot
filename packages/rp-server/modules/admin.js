@@ -154,7 +154,8 @@ mp.events.addCommand('veh', (player, fullText, vehicleModel) => {
 
     try {
         const pos = player.position;
-        const vehicle = mp.vehicles.new(mp.joaat(vehicleModel), pos,
+        const spawnPos = new mp.Vector3(pos.x + 3, pos.y, pos.z);
+        const vehicle = mp.vehicles.new(mp.joaat(vehicleModel), spawnPos,
             {
                 numberPlate: 'ADMIN',
                 color: [[255, 255, 255], [255, 255, 255]],
@@ -168,6 +169,7 @@ mp.events.addCommand('veh', (player, fullText, vehicleModel) => {
         console.log(`[Admin] ${player.name} spawned vehicle: ${vehicleModel}`);
     } catch (error) {
         player.outputChatBox('!{#FF0000}Invalid vehicle model!');
+        console.error(`[Admin] Error spawning vehicle ${vehicleModel}:`, error);
     }
 });
 

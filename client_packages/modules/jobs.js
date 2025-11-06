@@ -90,33 +90,19 @@ mp.events.add('client:stopJobTask', () => {
 });
 
 // Check if player enters checkpoint
-setInterval(() => {
-    if (!mp.players.local || !currentJob) return;
-    
-    const playerPos = mp.players.local.position;
-    
-    jobCheckpoints.forEach(checkpoint => {
-        if (checkpoint.type === 'checkpoint') {
-            const dist = mp.game.gameplay.getDistanceBetweenCoords(
-                playerPos.x, playerPos.y, playerPos.z,
-                checkpoint.position.x, checkpoint.position.y, checkpoint.position.z,
-                true
-            );
-            
-            if (dist <= 5.0) {
-                mp.events.callRemote('server:completeJobTask');
-            }
-        }
-    });
-}, 100);
+mp.events.add('playerEnterCheckpoint', (checkpoint) => {
+    if (currentJob && jobCheckpoints.includes(checkpoint)) {
+        mp.events.callRemote('server:completeJobTask');
+    }
+});
 
 // Check if near job location
-setInterval(() => {
-    if (!mp.players.local || currentJob) return;
+function isNearJob() {
+    if (!mp.players.local || currentJob) return null;
     
     const playerPos = mp.players.local.position;
     
-    jobMarkers.forEach(marker => {
+    for (const marker of jobMarkers) {
         const dist = mp.game.gameplay.getDistanceBetweenCoords(
             playerPos.x, playerPos.y, playerPos.z,
             marker.position.x, marker.position.y, marker.position.z,
@@ -124,36 +110,19 @@ setInterval(() => {
         );
         
         if (dist <= 2.0) {
-            mp.game.graphics.drawText('Press ~g~E~w~ to start Job', [0.5, 0.9],
-                {
-                    font: 4,
-                    color: [255, 255, 255, 255],
-                    scale: [0.4, 0.4],
-                    outline: true
-                }
-            );
+            return marker.jobId;
         }
-    });
-}, 0);
+    }
+    return null;
+}
 
-// E key to start job
-mp.keys.bind(0x45, false, () => {
-    if (!mp.players.local || currentJob) return;
-    
-    const playerPos = mp.players.local.position;
-    
-    jobMarkers.forEach(marker => {
-        const dist = mp.game.gameplay.getDistanceBetweenCoords(
-            playerPos.x, playerPos.y, playerPos.z,
-            marker.position.x, marker.position.y, marker.position.z,
-            true
-        );
-        
-        if (dist <= 2.0) {
-            mp.events.callRemote('server:startJob', marker.jobId);
-        }
-    });
-});
+// Export for use in interaction handler
+global.jobInteraction = {
+    isNear: isNearJob,
+    activate: (jobId) => {
+        mp.events.callRemote('server:startJob', jobId);
+    }
+};
 
 // Get random job location based on job type
 function getRandomJobLocation(jobId) {

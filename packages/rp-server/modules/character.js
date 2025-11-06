@@ -147,11 +147,17 @@ async function loadCharacter(player, characterId) {
                 const skinData = JSON.parse(character.skin_data);
                 if (skinData.model) {
                     player.model = mp.joaat(skinData.model);
+                } else {
+                    // Use default model based on gender
+                    player.model = character.gender === 'male' ? mp.joaat('mp_m_freemode_01') : mp.joaat('mp_f_freemode_01');
                 }
             } catch (e) {
                 // Use default model based on gender
                 player.model = character.gender === 'male' ? mp.joaat('mp_m_freemode_01') : mp.joaat('mp_f_freemode_01');
             }
+        } else {
+            // Use default model based on gender
+            player.model = character.gender === 'male' ? mp.joaat('mp_m_freemode_01') : mp.joaat('mp_f_freemode_01');
         }
 
         player.name = `${character.char_name}_${character.char_surname}`;

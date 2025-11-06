@@ -102,12 +102,13 @@ mp.events.add('server:buyVehicle', async (player, vehicleModel, vehicleName, pri
             [data.characterId, vehicleModel, plate, pos.x, pos.y, pos.z]
         );
 
-        // Spawn vehicle
-        const vehicle = mp.vehicles.new(mp.joaat(vehicleModel), pos,
+        // Spawn vehicle near player
+        const spawnPos = new mp.Vector3(pos.x + 3, pos.y, pos.z);
+        const vehicle = mp.vehicles.new(mp.joaat(vehicleModel), spawnPos,
             {
                 numberPlate: plate,
                 color: [[0, 0, 0], [0, 0, 0]],
-                locked: true,
+                locked: false,
                 engine: false,
                 dimension: player.dimension
             }
@@ -145,20 +146,25 @@ mp.events.add('server:spawnVehicle', async (player, vehicleId) => {
         const vehicleData = vehicles[0];
         const pos = player.position;
 
-        // Spawn vehicle
-        const vehicle = mp.vehicles.new(mp.joaat(vehicleData.model), pos,
+        // Spawn vehicle near player
+        const spawnPos = new mp.Vector3(pos.x + 3, pos.y, pos.z);
+        const color1 = vehicleData.color1.split(',').map(Number);
+        const color2 = vehicleData.color2.split(',').map(Number);
+        
+        const vehicle = mp.vehicles.new(mp.joaat(vehicleData.model), spawnPos,
             {
                 numberPlate: vehicleData.plate,
-                color: [vehicleData.color1.split(','), vehicleData.color2.split(',')],
+                color: [color1, color2],
                 locked: false,
                 engine: false,
                 dimension: player.dimension
             }
         );
 
-        vehicle.fuel = vehicleData.fuel;
-        vehicle.engineHealth = vehicleData.engine_health;
-        vehicle.bodyHealth = vehicleData.body_health;
+        // Set vehicle properties
+        if (vehicleData.fuel) vehicle.fuel = vehicleData.fuel;
+        if (vehicleData.engine_health) vehicle.engineHealth = vehicleData.engine_health;
+        if (vehicleData.body_health) vehicle.bodyHealth = vehicleData.body_health;
 
         player.outputChatBox(`!{#00FF00}Vehicle spawned! Plate: ${vehicleData.plate}`);
 

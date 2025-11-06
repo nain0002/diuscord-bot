@@ -10,6 +10,7 @@ require('./modules/jobs.js');
 require('./modules/vehicles.js');
 require('./modules/animations.js');
 require('./modules/markers.js');
+require('./modules/interactions.js'); // Must load last!
 
 console.log('=================================');
 console.log('Client-side scripts loaded!');

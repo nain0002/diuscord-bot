@@ -51,8 +51,8 @@
         }
         
         function createNew() {
-            mp.trigger('character:create', '', '', 0, '', '');
-            window.location.href = 'character_creator.html';
+            // Close this browser and trigger character creator on server
+            mp.trigger('character:showCreator');
         }
     </script>
     

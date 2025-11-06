@@ -168,12 +168,13 @@ mp.events.add('server:startJob', async (player, jobId) => {
         let vehicle = null;
         if (job.vehicle) {
             const pos = player.position;
-            vehicle = mp.vehicles.new(mp.joaat(job.vehicle), pos,
+            const spawnPos = new mp.Vector3(pos.x + 3, pos.y, pos.z);
+            vehicle = mp.vehicles.new(mp.joaat(job.vehicle), spawnPos,
                 {
                     numberPlate: 'JOB' + Math.floor(Math.random() * 1000),
                     color: [[255, 255, 255], [255, 255, 255]],
                     locked: false,
-                    engine: false,
+                    engine: true,
                     dimension: player.dimension
                 }
             );

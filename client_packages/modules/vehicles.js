@@ -78,12 +78,12 @@ mp.events.add('vehicle:close', () => {
 });
 
 // Check if near vehicle shop
-setInterval(() => {
-    if (!mp.players.local) return;
+function isNearVehicleShop() {
+    if (!mp.players.local) return false;
     
     const playerPos = mp.players.local.position;
     
-    vehicleShopMarkers.forEach(marker => {
+    for (const marker of vehicleShopMarkers) {
         const dist = mp.game.gameplay.getDistanceBetweenCoords(
             playerPos.x, playerPos.y, playerPos.z,
             marker.position.x, marker.position.y, marker.position.z,
@@ -91,35 +91,18 @@ setInterval(() => {
         );
         
         if (dist <= 2.0) {
-            mp.game.graphics.drawText('Press ~g~E~w~ to browse Vehicles', [0.5, 0.9],
-                {
-                    font: 4,
-                    color: [255, 255, 255, 255],
-                    scale: [0.4, 0.4],
-                    outline: true
-                }
-            );
+            return true;
         }
-    });
-}, 0);
+    }
+    return false;
+}
 
-// E key to open vehicle shop
-mp.keys.bind(0x45, false, () => {
-    if (!mp.players.local) return;
-    
-    const playerPos = mp.players.local.position;
-    
-    vehicleShopMarkers.forEach(marker => {
-        const dist = mp.game.gameplay.getDistanceBetweenCoords(
-            playerPos.x, playerPos.y, playerPos.z,
-            marker.position.x, marker.position.y, marker.position.z,
-            true
-        );
-        
-        if (dist <= 2.0) {
-            mp.events.callRemote('server:openVehicleShop');
-        }
-    });
-});
+// Export for use in interaction handler
+global.vehicleInteraction = {
+    isNear: isNearVehicleShop,
+    activate: () => {
+        mp.events.callRemote('server:openVehicleShop');
+    }
+};
 
 console.log('[Client] Vehicles module loaded');

@@ -78,12 +78,12 @@ mp.events.add('shop:close', () => {
 });
 
 // Check if near shop
-setInterval(() => {
-    if (!mp.players.local) return;
+function isNearShop() {
+    if (!mp.players.local) return null;
     
     const playerPos = mp.players.local.position;
     
-    shopMarkers.forEach(marker => {
+    for (const marker of shopMarkers) {
         const dist = mp.game.gameplay.getDistanceBetweenCoords(
             playerPos.x, playerPos.y, playerPos.z,
             marker.position.x, marker.position.y, marker.position.z,
@@ -91,36 +91,19 @@ setInterval(() => {
         );
         
         if (dist <= 2.0) {
-            mp.game.graphics.drawText('Press ~g~E~w~ to open Shop', [0.5, 0.9],
-                {
-                    font: 4,
-                    color: [255, 255, 255, 255],
-                    scale: [0.4, 0.4],
-                    outline: true
-                }
-            );
+            return marker.shopType;
         }
-    });
-}, 0);
+    }
+    return null;
+}
 
-// E key to open shop (handled in combination with other E key checks)
-mp.keys.bind(0x45, false, () => {
-    if (!mp.players.local) return;
-    
-    const playerPos = mp.players.local.position;
-    
-    shopMarkers.forEach(marker => {
-        const dist = mp.game.gameplay.getDistanceBetweenCoords(
-            playerPos.x, playerPos.y, playerPos.z,
-            marker.position.x, marker.position.y, marker.position.z,
-            true
-        );
-        
-        if (dist <= 2.0) {
-            mp.events.callRemote('server:openShop', marker.shopType);
-        }
-    });
-});
+// Export for use in interaction handler
+global.shopInteraction = {
+    isNear: isNearShop,
+    activate: (shopType) => {
+        mp.events.callRemote('server:openShop', shopType);
+    }
+};
 
 // Show inventory
 mp.events.add('client:showInventory', (inventoryJson) => {
@@ -131,17 +114,9 @@ mp.events.add('client:showInventory', (inventoryJson) => {
     });
 });
 
-// Inventory command
-mp.events.add('render', () => {
-    // I key for inventory
-    if (mp.keys.isDown(0x49) && !inventoryKeyPressed) {
-        inventoryKeyPressed = true;
-        mp.events.callRemote('server:getInventory');
-    } else if (!mp.keys.isDown(0x49)) {
-        inventoryKeyPressed = false;
-    }
+// Inventory key - I key
+mp.keys.bind(0x49, false, () => {
+    mp.events.callRemote('server:getInventory');
 });
-
-let inventoryKeyPressed = false;
 
 console.log('[Client] Shops module loaded');

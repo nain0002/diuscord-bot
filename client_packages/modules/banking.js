@@ -107,14 +107,13 @@ mp.events.add('banking:close', () => {
     closeBankingMenu();
 });
 
-// Check if near ATM/bank
-setInterval(() => {
-    if (!mp.players.local) return;
+// Check if near banking location
+function isNearBanking() {
+    if (!mp.players.local) return false;
     
     const playerPos = mp.players.local.position;
     
-    // Check ATMs and banks
-    [...atmMarkers, ...bankMarkers].forEach(marker => {
+    for (const marker of [...atmMarkers, ...bankMarkers]) {
         const dist = mp.game.gameplay.getDistanceBetweenCoords(
             playerPos.x, playerPos.y, playerPos.z,
             marker.position.x, marker.position.y, marker.position.z,
@@ -122,36 +121,19 @@ setInterval(() => {
         );
         
         if (dist <= 2.0) {
-            mp.game.graphics.drawText('Press ~g~E~w~ to access Banking', [0.5, 0.9],
-                {
-                    font: 4,
-                    color: [255, 255, 255, 255],
-                    scale: [0.4, 0.4],
-                    outline: true
-                }
-            );
+            return true;
         }
-    });
-}, 0);
+    }
+    return false;
+}
 
-// E key to open banking
-mp.keys.bind(0x45, false, () => { // E key
-    if (!mp.players.local) return;
-    
-    const playerPos = mp.players.local.position;
-    
-    [...atmMarkers, ...bankMarkers].forEach(marker => {
-        const dist = mp.game.gameplay.getDistanceBetweenCoords(
-            playerPos.x, playerPos.y, playerPos.z,
-            marker.position.x, marker.position.y, marker.position.z,
-            true
-        );
-        
-        if (dist <= 2.0) {
-            openBankingMenu();
-            mp.events.callRemote('server:checkBalance');
-        }
-    });
-});
+// Export for use in interaction handler
+global.bankingInteraction = {
+    isNear: isNearBanking,
+    activate: () => {
+        openBankingMenu();
+        mp.events.callRemote('server:checkBalance');
+    }
+};
 
 console.log('[Client] Banking module loaded');
