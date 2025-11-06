@@ -1,0 +1,22 @@
+{
+  "name": "rp-server",
+  "version": "2.0.1",
+  "description": "RAGE:MP Roleplay Server Package - Main game server logic",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ragemp",
+    "roleplay",
+    "server",
+    "game"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.3.1",
+    "mysql2": "^3.6.5"
+  }
+}
