@@ -46,7 +46,7 @@ require('./modules/vehicles');
 require('./modules/admin');
 require('./modules/spawn');
 require('./modules/admin-bridge');
-require('./modules/admin-permissions'); // Load permissions first
+// Note: admin-permissions loads automatically after database is ready
 require('./modules/admin-commands');
 require('./modules/admin-commands-enhanced');
 require('./modules/user-menu');

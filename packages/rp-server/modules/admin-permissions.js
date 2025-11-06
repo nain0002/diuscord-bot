@@ -201,8 +201,5 @@ class AdminPermissions {
     }
 }
 
-// Auto-load permissions on module load
-AdminPermissions.loadPermissions();
-
-// Export
+// Export (permissions will be loaded after database is ready)
 module.exports = AdminPermissions;

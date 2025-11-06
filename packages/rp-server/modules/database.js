@@ -427,6 +427,14 @@ const database = {
             console.log('[Database] All tables created/verified successfully!');
             console.log('[Database] Admin permission levels initialized!');
             console.log('[Database] Default achievements created!');
+            
+            // Load admin permissions into cache after tables are ready
+            try {
+                const AdminPermissions = require('./admin-permissions');
+                await AdminPermissions.loadPermissions();
+            } catch (e) {
+                console.error('[Database] Error loading admin permissions:', e.message);
+            }
         } catch (error) {
             console.error('[Database] Error creating tables:', error);
         }
