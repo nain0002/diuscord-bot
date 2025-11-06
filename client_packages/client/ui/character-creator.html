@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .value-display {
+            text-align: right;
+            color: #666;
+            font-size: 12px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 15px -10px;
+            font-weight: 600;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Character Creator</h2>
+        
+        <div class="form-group">
+            <label>Gender</label>
+            <select id="gender" onchange="updatePreview()">
+                <option value="0">Male</option>
+                <option value="1">Female</option>
+            </select>
+        </div>
+
+        <div class="section-title">Parents</div>
+        
+        <div class="form-group">
+            <label>Mother</label>
+            <input type="range" id="mother" min="0" max="45" value="21" oninput="updatePreview()">
+            <div class="value-display" id="mother-val">21</div>
+        </div>
+
+        <div class="form-group">
+            <label>Father</label>
+            <input type="range" id="father" min="0" max="45" value="0" oninput="updatePreview()">
+            <div class="value-display" id="father-val">0</div>
+        </div>
+
+        <div class="form-group">
+            <label>Similarity</label>
+            <input type="range" id="similarity" min="0" max="100" value="50" oninput="updatePreview()">
+            <div class="value-display" id="similarity-val">0.5</div>
+        </div>
+
+        <div class="section-title">Appearance</div>
+
+        <div class="form-group">
+            <label>Hair Style</label>
+            <input type="range" id="hair" min="0" max="50" value="0" oninput="updatePreview()">
+            <div class="value-display" id="hair-val">0</div>
+        </div>
+
+        <div class="form-group">
+            <label>Hair Color</label>
+            <input type="range" id="hairColor" min="0" max="63" value="0" oninput="updatePreview()">
+            <div class="value-display" id="hairColor-val">0</div>
+        </div>
+
+        <div class="form-group">
+            <label>Eye Color</label>
+            <input type="range" id="eyeColor" min="0" max="31" value="0" oninput="updatePreview()">
+            <div class="value-display" id="eyeColor-val">0</div>
+        </div>
+
+        <div class="section-title">Facial Features</div>
+
+        <div class="form-group">
+            <label>Nose Width</label>
+            <input type="range" id="noseWidth" min="-100" max="100" value="0" oninput="updatePreview()">
+            <div class="value-display" id="noseWidth-val">0.0</div>
+        </div>
+
+        <div class="form-group">
+            <label>Nose Height</label>
+            <input type="range" id="noseHeight" min="-100" max="100" value="0" oninput="updatePreview()">
+            <div class="value-display" id="noseHeight-val">0.0</div>
+        </div>
+
+        <div class="form-group">
+            <label>Lips</label>
+            <input type="range" id="lips" min="-100" max="100" value="0" oninput="updatePreview()">
+            <div class="value-display" id="lips-val">0.0</div>
+        </div>
+
+        <button onclick="saveAppearance()">Save & Continue</button>
+    </div>
+
+    <script>
+        let characterId = 0;
+
+        function setCharacterId(id) {
+            characterId = id;
+        }
+
+        function updatePreview() {
+            // Update value displays
+            document.getElementById('mother-val').textContent = document.getElementById('mother').value;
+            document.getElementById('father-val').textContent = document.getElementById('father').value;
+            document.getElementById('similarity-val').textContent = (document.getElementById('similarity').value / 100).toFixed(2);
+            document.getElementById('hair-val').textContent = document.getElementById('hair').value;
+            document.getElementById('hairColor-val').textContent = document.getElementById('hairColor').value;
+            document.getElementById('eyeColor-val').textContent = document.getElementById('eyeColor').value;
+            document.getElementById('noseWidth-val').textContent = (document.getElementById('noseWidth').value / 100).toFixed(2);
+            document.getElementById('noseHeight-val').textContent = (document.getElementById('noseHeight').value / 100).toFixed(2);
+            document.getElementById('lips-val').textContent = (document.getElementById('lips').value / 100).toFixed(2);
+
+            // Send to client for preview
+            const appearance = getAppearanceData();
+            mp.trigger('client:previewAppearance', JSON.stringify(appearance));
+        }
+
+        function getAppearanceData() {
+            return {
+                gender: parseInt(document.getElementById('gender').value),
+                mother: parseInt(document.getElementById('mother').value),
+                father: parseInt(document.getElementById('father').value),
+                similarity: parseInt(document.getElementById('similarity').value) / 100,
+                skinSimilarity: parseInt(document.getElementById('similarity').value) / 100,
+                eyeColor: parseInt(document.getElementById('eyeColor').value),
+                hairColor: parseInt(document.getElementById('hairColor').value),
+                highlightColor: parseInt(document.getElementById('hairColor').value),
+                hair: parseInt(document.getElementById('hair').value),
+                eyebrows: 0,
+                eyebrowsColor: 0,
+                beard: 0,
+                beardColor: 0,
+                noseWidth: parseInt(document.getElementById('noseWidth').value) / 100,
+                noseHeight: parseInt(document.getElementById('noseHeight').value) / 100,
+                noseLength: 0,
+                noseBridge: 0,
+                noseTip: 0,
+                noseShift: 0,
+                browHeight: 0,
+                browWidth: 0,
+                cheekboneHeight: 0,
+                cheekboneWidth: 0,
+                cheeksWidth: 0,
+                eyes: 0,
+                lips: parseInt(document.getElementById('lips').value) / 100,
+                jawWidth: 0,
+                jawHeight: 0,
+                chinLength: 0,
+                chinPosition: 0,
+                chinWidth: 0,
+                chinShape: 0,
+                neckWidth: 0
+            };
+        }
+
+        function saveAppearance() {
+            const appearance = getAppearanceData();
+            mp.trigger('server:saveAppearance', characterId, JSON.stringify(appearance));
+        }
+    </script>
+</body>
+</html>

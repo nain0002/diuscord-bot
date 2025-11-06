@@ -1,0 +1,47 @@
+# Environment variables
+.env
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database backups
+*.sql.backup
+backup_*.sql
+
+# Editor directories
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# RAGE:MP server files
+server.log
+announcelist.json
+*_crashinfo.txt
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# Build files
+dist/
+build/
+
+# Cache
+.cache/
+.npm/
+.eslintcache

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .inventory-slot {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .inventory-slot:hover {
+            border-color: #3498db;
+            transform: scale(1.05);
+        }
+
+        .inventory-slot.empty {
+            background: #ecf0f1;
+            cursor: default;
+        }
+
+        .item-name {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .item-quantity {
+            font-size: 14px;
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        .close-button {
+            width: 100%;
+            padding: 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .close-button:hover {
+            background: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inventory</h1>
+        
+        <div id="inventory-grid" class="inventory-grid"></div>
+        
+        <button class="close-button" onclick="closeInventory()">Close</button>
+    </div>
+
+    <script>
+        function setInventory(inventoryJSON) {
+            const inventory = JSON.parse(inventoryJSON);
+            renderInventory(inventory);
+        }
+
+        function renderInventory(inventory) {
+            const grid = document.getElementById('inventory-grid');
+            grid.innerHTML = '';
+
+            // Create 20 slots
+            for (let i = 0; i < 20; i++) {
+                const item = inventory.find(inv => inv.slot === i);
+                const slot = document.createElement('div');
+                
+                if (item) {
+                    slot.className = 'inventory-slot';
+                    slot.innerHTML = `
+                        <div class="item-name">${item.item_name}</div>
+                        <div class="item-quantity">x${item.quantity}</div>
+                    `;
+                } else {
+                    slot.className = 'inventory-slot empty';
+                    slot.textContent = i;
+                }
+                
+                grid.appendChild(slot);
+            }
+        }
+
+        function closeInventory() {
+            mp.trigger('client:closeAllUIs');
+        }
+    </script>
+</body>
+</html>

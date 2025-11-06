@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .item-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .item-card:hover {
+            border-color: #3498db;
+            transform: translateY(-3px);
+        }
+
+        .item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .item-description {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        .item-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .buy-button {
+            width: 100%;
+            padding: 10px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .buy-button:hover {
+            background: #2980b9;
+        }
+
+        .close-button {
+            width: 100%;
+            padding: 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .close-button:hover {
+            background: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Shop</h1>
+        
+        <div id="items-grid" class="items-grid"></div>
+        
+        <button class="close-button" onclick="closeShop()">Close</button>
+    </div>
+
+    <script>
+        function setItems(itemsJSON) {
+            const items = JSON.parse(itemsJSON);
+            renderItems(items);
+        }
+
+        function renderItems(items) {
+            const grid = document.getElementById('items-grid');
+            grid.innerHTML = '';
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                
+                card.innerHTML = `
+                    <div class="item-name">${item.item_name}</div>
+                    <div class="item-description">${item.description || 'No description'}</div>
+                    <div class="item-price">$${item.price.toLocaleString()}</div>
+                    <button class="buy-button" onclick="buyItem(${item.shop_id}, ${item.id}, 1)">Buy</button>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function buyItem(shopId, itemId, quantity) {
+            mp.trigger('server:buyItem', shopId, itemId, quantity);
+        }
+
+        function closeShop() {
+            mp.trigger('client:closeAllUIs');
+        }
+    </script>
+</body>
+</html>

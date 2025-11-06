@@ -1,0 +1,16 @@
+{
+  "maxplayers": 100,
+  "name": "RAGE:MP Roleplay Server",
+  "gamemode": "Roleplay",
+  "streamDistance": 500.0,
+  "announce": false,
+  "port": 22005,
+  "bind": "0.0.0.0",
+  "language": "en",
+  "url": "",
+  "voiceChat": true,
+  "fastdl": "",
+  "csharp": false,
+  "enable-nodejs": true,
+  "encryption": false
+}

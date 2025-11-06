@@ -1,0 +1,17 @@
+{
+  "name": "ragemp-roleplay-server",
+  "version": "1.0.0",
+  "description": "Full functional RAGE:MP roleplay server with database",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["ragemp", "roleplay", "gta5"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "mysql2": "^3.6.0",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.3.1"
+  }
+}

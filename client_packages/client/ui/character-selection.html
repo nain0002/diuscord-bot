@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Selection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .character-list {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .character-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .character-card:hover {
+            transform: translateY(-5px);
+            border-color: #3498db;
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .character-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .character-info {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .create-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .create-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Select Your Character</h1>
+        
+        <div id="character-list" class="character-list">
+            <div class="empty-message">No characters yet</div>
+        </div>
+        
+        <button class="create-button" onclick="createNewCharacter()">Create New Character</button>
+    </div>
+
+    <script>
+        let characters = [];
+
+        function setCharacters(charactersJSON) {
+            characters = JSON.parse(charactersJSON);
+            renderCharacters();
+        }
+
+        function renderCharacters() {
+            const list = document.getElementById('character-list');
+            list.innerHTML = '';
+
+            if (characters.length === 0) {
+                list.innerHTML = '<div class="empty-message">No characters yet. Create one to start playing!</div>';
+                return;
+            }
+
+            characters.forEach(char => {
+                const card = document.createElement('div');
+                card.className = 'character-card';
+                card.onclick = () => selectCharacter(char.id);
+                
+                card.innerHTML = `
+                    <div class="character-name">${char.first_name} ${char.last_name}</div>
+                    <div class="character-info">
+                        Age: ${char.age} | Gender: ${char.gender} | Job: ${char.job}<br>
+                        Money: $${char.money.toLocaleString()} | Bank: $${char.bank_balance.toLocaleString()}<br>
+                        Playtime: ${Math.floor(char.playtime / 60)}h ${char.playtime % 60}m
+                    </div>
+                `;
+                
+                list.appendChild(card);
+            });
+        }
+
+        function selectCharacter(characterId) {
+            mp.trigger('server:selectCharacter', characterId);
+        }
+
+        function createNewCharacter() {
+            if (characters.length >= 3) {
+                alert('Maximum 3 characters per account!');
+                return;
+            }
+            
+            const firstName = prompt('Enter first name:');
+            if (!firstName) return;
+            
+            const lastName = prompt('Enter last name:');
+            if (!lastName) return;
+            
+            const age = prompt('Enter age (18-100):');
+            if (!age || age < 18 || age > 100) {
+                alert('Invalid age!');
+                return;
+            }
+            
+            const gender = prompt('Enter gender (Male/Female):');
+            if (gender !== 'Male' && gender !== 'Female') {
+                alert('Invalid gender!');
+                return;
+            }
+            
+            mp.trigger('server:createCharacter', firstName, lastName, age, gender);
+        }
+    </script>
+</body>
+</html>
