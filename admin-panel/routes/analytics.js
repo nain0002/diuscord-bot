@@ -84,7 +84,11 @@ router.get('/achievements', async (req, res) => {
                 a.points,
                 COUNT(pa.id) as unlocked_count,
                 (SELECT COUNT(*) FROM characters) as total_players,
-                ROUND((COUNT(pa.id) * 100.0 / (SELECT COUNT(*) FROM characters)), 2) as unlock_percentage
+                CASE 
+                    WHEN (SELECT COUNT(*) FROM characters) > 0 
+                    THEN ROUND((COUNT(pa.id) * 100.0 / (SELECT COUNT(*) FROM characters)), 2)
+                    ELSE 0
+                END as unlock_percentage
             FROM achievements a
             LEFT JOIN player_achievements pa ON a.id = pa.achievement_id
             GROUP BY a.id, a.name, a.category, a.points

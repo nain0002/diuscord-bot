@@ -13,7 +13,8 @@ const state = {
     chatHistory: [],
     events: [],
     serverStats: {},
-    isConnected: false
+    isConnected: false,
+    username: 'Admin' // Default value
 };
 
 // Initialize on load
@@ -36,6 +37,7 @@ async function checkAuth() {
         }
 
         const username = data.user.username;
+        state.username = username; // Store in state
         document.getElementById('adminUsername').textContent = username;
         document.querySelector('.user-avatar').textContent = username.charAt(0).toUpperCase();
     } catch (error) {
@@ -796,14 +798,25 @@ async function logout() {
 
 // Utility functions
 function formatDate(dateString) {
-    if (!dateString) return 'Never';
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    if (!dateString || dateString === 'null' || dateString === null) return 'Never';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Invalid Date';
+        return date.toLocaleString();
+    } catch (error) {
+        return 'Invalid Date';
+    }
 }
 
 function formatTime(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString();
+    if (!dateString || dateString === 'null' || dateString === null) return '--:--';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '--:--';
+        return date.toLocaleTimeString();
+    } catch (error) {
+        return '--:--';
+    }
 }
 
 function escapeHtml(text) {

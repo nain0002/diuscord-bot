@@ -8,17 +8,19 @@ router.get('/stats', async (req, res) => {
     try {
         const overview = await db.query(`
             SELECT 
-                SUM(money) as total_cash,
-                SUM(bank_balance) as total_bank,
-                SUM(dirty_money) as total_dirty,
-                AVG(money) as avg_cash,
-                AVG(bank_balance) as avg_bank
+                COALESCE(SUM(money), 0) as total_cash,
+                COALESCE(SUM(bank_balance), 0) as total_bank,
+                COALESCE(SUM(dirty_money), 0) as total_dirty,
+                COALESCE(AVG(money), 0) as avg_cash,
+                COALESCE(AVG(bank_balance), 0) as avg_bank
             FROM characters
         `);
         
         const richest = await db.query(`
-            SELECT id, first_name, last_name, money, bank_balance,
-                   (money + bank_balance) as total_wealth
+            SELECT id, first_name, last_name, 
+                   COALESCE(money, 0) as money, 
+                   COALESCE(bank_balance, 0) as bank_balance,
+                   (COALESCE(money, 0) + COALESCE(bank_balance, 0)) as total_wealth
             FROM characters
             ORDER BY total_wealth DESC
             LIMIT 10
@@ -28,7 +30,7 @@ router.get('/stats', async (req, res) => {
             SELECT 
                 transaction_type,
                 COUNT(*) as count,
-                SUM(amount) as total_amount
+                COALESCE(SUM(amount), 0) as total_amount
             FROM economy_logs
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
             GROUP BY transaction_type
@@ -36,7 +38,7 @@ router.get('/stats', async (req, res) => {
         
         res.json({ 
             success: true, 
-            overview: overview[0] || {},
+            overview: overview[0] || { total_cash: 0, total_bank: 0, total_dirty: 0, avg_cash: 0, avg_bank: 0 },
             richest: richest || [],
             transactions: transactions || []
         });
