@@ -213,11 +213,55 @@ const database = {
                     admin_name VARCHAR(100),
                     banned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     INDEX idx_social_club (social_club)
+                )`,
+
+                // Admin logs table
+                `CREATE TABLE IF NOT EXISTS admin_logs (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    action VARCHAR(50) NOT NULL,
+                    admin_name VARCHAR(255) NOT NULL,
+                    target_name VARCHAR(255),
+                    reason TEXT,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_action (action),
+                    INDEX idx_admin (admin_name),
+                    INDEX idx_timestamp (timestamp)
+                )`,
+
+                // Whitelist table
+                `CREATE TABLE IF NOT EXISTS whitelist (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    social_club VARCHAR(255) NOT NULL UNIQUE,
+                    added_by VARCHAR(255),
+                    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_social_club (social_club)
+                )`,
+
+                // Reports table
+                `CREATE TABLE IF NOT EXISTS reports (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    reporter_id INT NOT NULL,
+                    reported_id INT NOT NULL,
+                    reason TEXT NOT NULL,
+                    status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+                    handled_by VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    handled_at TIMESTAMP NULL,
+                    INDEX idx_status (status),
+                    INDEX idx_reporter (reporter_id),
+                    INDEX idx_reported (reported_id)
                 )`
             ];
 
             for (const query of queries) {
                 await pool.query(query);
+            }
+
+            // Add warnings column to characters if not exists
+            try {
+                await pool.query(`ALTER TABLE characters ADD COLUMN warnings INT DEFAULT 0`);
+            } catch (e) {
+                // Column likely already exists, ignore error
             }
 
             console.log('[Database] All tables created/verified successfully!');

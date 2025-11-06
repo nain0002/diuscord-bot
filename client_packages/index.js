@@ -25,7 +25,8 @@ console.log('[Client] Core modules loaded');
 require('./auth.js');              // Modern authentication handler
 require('./hud-handler.js');       // Modern live HUD
 require('./inventory.js');         // Enhanced inventory handler
-require('./admin-menu-handler.js'); // Admin menu (F6)
+require('./admin-menu-handler.js'); // Admin menu (F6) - Basic
+require('./admin-menu-handler-enhanced.js'); // Admin menu (F6) - Enhanced
 require('./admin-utils.js');       // Admin utilities (freeze, appearance, etc.)
 require('./user-menu-handler.js'); // User menu (M key)
 require('./bot-cars.js');          // Bot cars system

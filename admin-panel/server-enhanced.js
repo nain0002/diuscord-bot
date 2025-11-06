@@ -199,6 +199,12 @@ app.use('/api/logs', authMiddleware, logsRoutes);
 app.use('/api/admin-management', authMiddleware, adminManagementRoutes);
 app.use('/api/inventory', authMiddleware, inventoryRoutes);
 
+// Enhanced admin features
+app.use('/api/admin-logs', authMiddleware, require('./routes/admin-logs'));
+app.use('/api/whitelist', authMiddleware, require('./routes/whitelist'));
+app.use('/api/bans', authMiddleware, require('./routes/bans'));
+app.use('/api/reports', authMiddleware, require('./routes/reports'));
+
 logger.info('All routes mounted');
 
 // ═══════════════════════════════════════════════════════════════════════

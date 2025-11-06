@@ -47,6 +47,7 @@ require('./modules/admin');
 require('./modules/spawn');
 require('./modules/admin-bridge');
 require('./modules/admin-commands');
+require('./modules/admin-commands-enhanced');
 require('./modules/user-menu');
 require('./modules/character-creator');
 

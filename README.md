@@ -1,12 +1,15 @@
-# 🎮 RAGE:MP Roleplay Server - Complete Package
+# 🎮 RAGE:MP Roleplay Server - Complete Package (Enhanced Admin Edition)
 
-## 🌟 What's New - Latest Update
+## 🌟 What's New - Latest Update (Enhanced Admin System!)
 
-### ✨ All New Features (100% Complete)
+### ✨ All New Features (100% Complete + Enhanced Admin!)
 
 1. **Modern Live HUD** - Real-time stats with glassmorphism design
 2. **Enhanced Inventory System** - Weight-based with transparent glass UI
-3. **In-Game Admin Menu (F6)** - Complete server control panel
+3. **🔥 In-Game Admin Menu (F6)** - **33 ENHANCED FEATURES!**
+   - 21 in-game admin tools (NoClip, spectate, spawn, ban, etc.)
+   - 12 web panel features (logs, whitelist, reports, bans)
+   - Complete action logging system
 4. **User Menu (M Key)** - Stats, skills, actions, services
 5. **Bot Car System** - 20+ NPC vehicles with CTRL start
 6. **Character Creation** - 4-step wizard with live preview
@@ -14,6 +17,8 @@
 8. **Car HUD** - Speed, fuel, engine health display
 
 **All features working 100% with modern transparent glass UIs!** ✅
+
+**NEW: Enhanced Admin System with 4 new database tables and 15+ API endpoints!** 🎉
 
 ---
 
@@ -24,18 +29,22 @@
 - MySQL or MariaDB
 - Node.js 14+
 
-### Installation (3 Steps)
+### Installation (4 Steps)
 
 1. **Copy Files:**
    ```bash
    # Copy workspace files to C:\RAGEMP\server-files\
    workspace/client_packages/* → server-files/client_packages/
    workspace/packages/rp-server/* → server-files/packages/rp-server/
+   workspace/admin-panel/* → server-files/admin-panel/
    ```
 
 2. **Install Dependencies:**
    ```bash
    cd C:\RAGEMP\server-files\packages\rp-server
+   npm install
+   
+   cd C:\RAGEMP\server-files\
    npm install
    ```
 
@@ -43,8 +52,14 @@
    - Edit `.env` with your MySQL credentials
    - Start MySQL
    - Run `ragemp-server.exe`
+   - (Optional) Start admin panel: `node admin-panel/server-enhanced.js`
 
-**That's it!** 🚀
+4. **Set Up Admin Access:**
+   ```sql
+   UPDATE users SET is_admin = 1, admin_level = 3 WHERE username = 'youradmin';
+   ```
+
+**That's it!** 🚀 **Press F6 in-game for admin menu!**
 
 ---
 
