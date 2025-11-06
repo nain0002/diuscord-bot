@@ -13,6 +13,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const WebSocketBridge = require('./websocket-bridge');
+const adminDatabase = require('./database-config');
 
 const app = express();
 const server = http.createServer(app);
@@ -30,6 +31,7 @@ const playersRoutes = require('./routes/players');
 const serverRoutes = require('./routes/server');
 const databaseRoutes = require('./routes/database');
 const logsRoutes = require('./routes/logs');
+const adminManagementRoutes = require('./routes/admin-management');
 
 // Import middleware
 const authMiddleware = require('./middleware/auth');
@@ -75,6 +77,7 @@ app.use('/api/players', authMiddleware, playersRoutes);
 app.use('/api/server', authMiddleware, serverRoutes);
 app.use('/api/database', authMiddleware, databaseRoutes);
 app.use('/api/logs', authMiddleware, logsRoutes);
+app.use('/api/admin-management', authMiddleware, adminManagementRoutes);
 
 // Serve admin panel
 app.get('/', (req, res) => {
@@ -131,12 +134,18 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
+// Initialize admin database
+adminDatabase.connect().then(() => {
+    console.log('[Admin Panel] Database initialized');
+});
+
 // Start server
 const PORT = process.env.ADMIN_PORT || 3000;
 server.listen(PORT, () => {
     console.log('=================================');
     console.log(`Admin Panel running on http://localhost:${PORT}`);
     console.log('Default login: admin / admin123');
+    console.log('⚠️  CHANGE DEFAULT PASSWORD IMMEDIATELY!');
     console.log('=================================');
 });
 
