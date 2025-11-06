@@ -192,7 +192,9 @@ logger.info('All route modules loaded');
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
+app.use('/api/dashboard', authMiddleware, require('./routes/dashboard-enhanced'));
 app.use('/api/players', authMiddleware, playersRoutes);
+app.use('/api/players', authMiddleware, require('./routes/players-enhanced'));
 app.use('/api/server', authMiddleware, serverRoutes);
 app.use('/api/database', authMiddleware, databaseRoutes);
 app.use('/api/logs', authMiddleware, logsRoutes);
@@ -211,7 +213,11 @@ app.use('/api/economy', authMiddleware, require('./routes/economy'));
 app.use('/api/analytics', authMiddleware, require('./routes/analytics'));
 app.use('/api/server-control', authMiddleware, require('./routes/server-control'));
 
-logger.info('All routes mounted (including RAGE:MP essentials)');
+// Ultra Admin Panel Features
+app.use('/api/admin', authMiddleware, require('./routes/admin'));
+app.use('/api/analytics', authMiddleware, require('./routes/analytics-ultra'));
+
+logger.info('All routes mounted (including RAGE:MP essentials & Ultra Admin)');
 
 // ═══════════════════════════════════════════════════════════════════════
 // ENHANCED MONITORING ENDPOINTS
@@ -316,13 +322,18 @@ app.get('/api/logs/errors', authMiddleware, (req, res) => {
 
 app.get('/', (req, res) => {
     if (req.session.isAuthenticated) {
-        res.sendFile(path.join(__dirname, 'public', 'modern-dashboard.html'));
+        res.sendFile(path.join(__dirname, 'public', 'ultra-admin.html'));
     } else {
         res.sendFile(path.join(__dirname, 'public', 'login.html'));
     }
 });
 
 app.get('/dashboard', authMiddleware, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'ultra-admin.html'));
+});
+
+// Legacy modern dashboard route
+app.get('/modern-dashboard', authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'modern-dashboard.html'));
 });
 
@@ -365,6 +376,53 @@ io.on('connection', (socket) => {
         logger.info('Admin client disconnected', { socketId: socket.id });
     });
 });
+
+// Real-time stats broadcaster (every 5 seconds)
+setInterval(async () => {
+    try {
+        const onlinePlayers = wsBridge ? (wsBridge.getOnlinePlayers() || []) : [];
+        
+        const [vehicles, reports] = await Promise.all([
+            database.query('SELECT COUNT(*) as count FROM vehicles'),
+            database.query('SELECT COUNT(*) as count FROM reports WHERE status = "pending"')
+        ]);
+        
+        const avgPing = onlinePlayers.length > 0
+            ? Math.round(onlinePlayers.reduce((sum, p) => sum + (p.ping || 0), 0) / onlinePlayers.length)
+            : 0;
+        
+        io.to('admins').emit('statsUpdate', {
+            totalPlayers: onlinePlayers.length,
+            totalVehicles: vehicles[0]?.count || 0,
+            pendingReports: reports[0]?.count || 0,
+            serverPing: avgPing,
+            timestamp: Date.now()
+        });
+        
+    } catch (error) {
+        logger.error('Stats broadcast error', { error: error.message });
+    }
+}, 5000);
+
+// Player position updates (for map - every 2 seconds)
+setInterval(() => {
+    if (wsBridge) {
+        const players = wsBridge.getOnlinePlayers() || [];
+        io.to('admins').emit('playerUpdate', {
+            players: players.map(p => ({
+                id: p.id,
+                name: p.name,
+                x: p.x || 0,
+                y: p.y || 0,
+                z: p.z || 0,
+                heading: p.heading || 0,
+                vehicle: p.vehicle || null,
+                health: p.health || 100
+            })),
+            timestamp: Date.now()
+        });
+    }
+}, 2000);
 
 // Make bridge and io available to routes
 app.set('wsBridge', wsBridge);

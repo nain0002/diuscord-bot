@@ -1,6 +1,17 @@
-# 🎮 RAGE:MP Roleplay Server - Complete System
+# 🚀 RAGE:MP Roleplay Server - Ultra Advanced Edition
 
-A fully functional RAGE:MP roleplay server with modern UI, comprehensive features, and production-ready code.
+A fully functional RAGE:MP roleplay server with **next-generation glassmorphism admin panel**, AI detection, voice commands, and production-ready code.
+
+## 🎉 **LATEST: Ultra Admin Panel with AI & Voice Control**
+
+**NEW IN THIS VERSION:**
+- 🎨 Next-gen glassmorphism UI with animated particles
+- 🤖 AI-powered cheat detection (auto-freeze suspicious players)
+- 🎤 Voice commands - Control server by speaking
+- 🗺️ Real-time 3D player map with zoom/pan
+- 📊 Advanced analytics & heatmaps
+- ⚡ WebSocket real-time updates (every 2-5s)
+- 🎯 All admin functions working 100%
 
 ---
 
@@ -30,16 +41,17 @@ npm start
 
 ### 3. Access
 - **Game Server:** Connect via RAGE:MP client
-- **Admin Panel:** http://localhost:3001
+- **Ultra Admin Panel:** http://localhost:3000
+- **Default Login:** `admin` / `admin123` ⚠️ **CHANGE IMMEDIATELY**
 
 ---
 
 ## ✨ **Features**
 
 ### Core Systems
+- ✅ **Ultra Admin Panel** - Next-gen glassmorphism design with AI & voice
 - ✅ **Modern Glassmorphism UI** - Cyberpunk-style transparent interfaces
 - ✅ **Inventory System** - Drag & drop, gun slots, hotbar (1-5 keys)
-- ✅ **Admin Panel** - Web-based server control (txAdmin-style)
 - ✅ **Admin Menu** - In-game admin commands (F6 key)
 - ✅ **User Menu** - Player menu with stats (M key)
 - ✅ **Live HUD** - Real-time health, armor, money display
@@ -53,7 +65,14 @@ npm start
 - ✅ **Vehicle System** - Buy, sell, lock/unlock, engine control
 - ✅ **Bot Cars** - Traffic system with sittable vehicles
 
-### Admin Features
+### Ultra Admin Panel Features 🔥
+- ✅ **AI Cheat Detection** - Auto-freeze hackers (speed, teleport, godmode)
+- ✅ **Voice Commands** - "kick player 5", "show map", "ban player 3"
+- ✅ **3D Live Map** - Real-time player tracking with zoom/pan
+- ✅ **Advanced Analytics** - Heatmaps, top players, economy flow
+- ✅ **Real-Time Updates** - WebSocket (5s stats, 2s positions)
+- ✅ **Glassmorphism UI** - Animated particles, neon glows, blur effects
+- ✅ **Admin Actions** - Kick, ban, freeze, heal, teleport
 - ✅ **6-Level Permission System** (Admin Lv0-5)
 - ✅ **Web Dashboard** - Real-time stats & control
 - ✅ **In-Game Commands** - 50+ admin commands
