@@ -13,7 +13,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const WebSocketBridge = require('./websocket-bridge');
-const adminDatabase = require('./database-config');
+const database = require('../packages/rp-server/modules/database');
 
 const app = express();
 const server = http.createServer(app);
@@ -134,9 +134,47 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
-// Initialize admin database
-adminDatabase.connect().then(() => {
-    console.log('[Admin Panel] Database initialized');
+// Initialize database connection
+database.connect().then(async () => {
+    console.log('[Admin Panel] Database connected');
+    
+    // Create admins table if it doesn't exist
+    try {
+        await database.query(`
+            CREATE TABLE IF NOT EXISTS admins (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                email VARCHAR(100),
+                admin_level INT DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login TIMESTAMP NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                INDEX idx_username (username)
+            )
+        `);
+        
+        // Check if default admin exists
+        const admins = await database.query('SELECT id FROM admins WHERE username = ?', ['admin']);
+        
+        if (admins.length === 0) {
+            // Create default admin
+            const bcrypt = require('bcrypt');
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            
+            await database.query(
+                'INSERT INTO admins (username, password, email, admin_level) VALUES (?, ?, ?, ?)',
+                ['admin', hashedPassword, 'admin@localhost', 4]
+            );
+            
+            console.log('[Admin Panel] Default admin user created');
+            console.log('[Admin Panel] ⚠️  Username: admin / Password: admin123');
+        }
+        
+        console.log('[Admin Panel] Admins table ready');
+    } catch (error) {
+        console.error('[Admin Panel] Error setting up admins table:', error);
+    }
 });
 
 // Start server

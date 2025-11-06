@@ -5,12 +5,14 @@
 
 const express = require('express');
 const router = express.Router();
-const database = require('../database-config');
+const database = require('../../packages/rp-server/modules/database');
 
 // Get all admin users
 router.get('/', async (req, res) => {
     try {
-        const admins = await database.getAllAdmins();
+        const admins = await database.query(
+            'SELECT id, username, email, admin_level, created_at, last_login, is_active FROM admins'
+        );
         res.json({ success: true, admins });
     } catch (error) {
         console.error('[Admin Management] Error getting admins:', error);
@@ -37,18 +39,22 @@ router.post('/create', async (req, res) => {
         }
 
         // Check if username already exists
-        const existing = await database.getAdminByUsername(username);
-        if (existing) {
+        const existing = await database.query('SELECT id FROM admins WHERE username = ?', [username]);
+        if (existing.length > 0) {
             return res.status(400).json({ error: 'Username already exists' });
         }
 
+        // Hash password
+        const bcrypt = require('bcrypt');
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         // Create admin
-        const adminId = await database.createAdmin(
-            username, 
-            password, 
-            email || null, 
-            admin_level || 1
+        const result = await database.query(
+            'INSERT INTO admins (username, password, email, admin_level) VALUES (?, ?, ?, ?)',
+            [username, hashedPassword, email || null, admin_level || 1]
         );
+        
+        const adminId = result.insertId;
 
         res.json({ 
             success: true, 
@@ -92,14 +98,11 @@ router.post('/change-password', async (req, res) => {
             return res.status(401).json({ error: 'Current password incorrect' });
         }
 
-        // Update password
-        const success = await database.updateAdminPassword(adminId, newPassword);
+        // Hash and update password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await database.query('UPDATE admins SET password = ? WHERE id = ?', [hashedPassword, adminId]);
 
-        if (success) {
-            res.json({ success: true, message: 'Password updated successfully' });
-        } else {
-            res.status(500).json({ error: 'Failed to update password' });
-        }
+        res.json({ success: true, message: 'Password updated successfully' });
 
     } catch (error) {
         console.error('[Admin Management] Error changing password:', error);
@@ -140,14 +143,11 @@ router.post('/change-my-password', async (req, res) => {
             return res.status(401).json({ error: 'Current password incorrect' });
         }
 
-        // Update password
-        const success = await database.updateAdminPassword(req.session.user.id, newPassword);
+        // Hash and update password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await database.query('UPDATE admins SET password = ? WHERE id = ?', [hashedPassword, req.session.user.id]);
 
-        if (success) {
-            res.json({ success: true, message: 'Your password has been updated successfully' });
-        } else {
-            res.status(500).json({ error: 'Failed to update password' });
-        }
+        res.json({ success: true, message: 'Your password has been updated successfully' });
 
     } catch (error) {
         console.error('[Admin Management] Error changing password:', error);
@@ -165,13 +165,8 @@ router.post('/deactivate/:id', async (req, res) => {
             return res.status(400).json({ error: 'Cannot deactivate your own account' });
         }
 
-        const success = await database.deactivateAdmin(adminId);
-
-        if (success) {
-            res.json({ success: true, message: 'Admin deactivated successfully' });
-        } else {
-            res.status(500).json({ error: 'Failed to deactivate admin' });
-        }
+        await database.query('UPDATE admins SET is_active = FALSE WHERE id = ?', [adminId]);
+        res.json({ success: true, message: 'Admin deactivated successfully' });
 
     } catch (error) {
         console.error('[Admin Management] Error deactivating admin:', error);

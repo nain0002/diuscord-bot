@@ -6,7 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const database = require('../database-config');
+const database = require('../../packages/rp-server/modules/database');
 
 // Login
 router.post('/login', async (req, res) => {
