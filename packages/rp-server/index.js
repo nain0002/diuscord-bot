@@ -25,32 +25,11 @@ console.log('=================================');
 console.log('RAGE:MP Roleplay Server Starting');
 console.log('=================================');
 
-// CRITICAL: Verify RAGE:MP 'mp' global is available
-if (typeof mp === 'undefined') {
-    console.error('');
-    console.error('╔════════════════════════════════════════════════════════════╗');
-    console.error('║                                                            ║');
-    console.error('║  ❌ CRITICAL ERROR: RAGE:MP "mp" global not found!        ║');
-    console.error('║                                                            ║');
-    console.error('║  This means you are running this code with Node.js        ║');
-    console.error('║  instead of the RAGE:MP server executable!                ║');
-    console.error('║                                                            ║');
-    console.error('║  HOW TO FIX:                                               ║');
-    console.error('║  1. Navigate to your server-files directory                ║');
-    console.error('║  2. Run: server.exe (or ragemp-server.exe)                ║');
-    console.error('║  3. DO NOT run: node index.js or npm start                ║');
-    console.error('║                                                            ║');
-    console.error('║  Location: C:\\RAGEMP\\server-files\\                       ║');
-    console.error('║  Command:  server.exe                                      ║');
-    console.error('║                                                            ║');
-    console.error('║  See CRITICAL_ERROR_FIX.md for detailed instructions       ║');
-    console.error('║                                                            ║');
-    console.error('╚════════════════════════════════════════════════════════════╝');
-    console.error('');
-    process.exit(1);
-}
-
-console.log('[Server] ✅ RAGE:MP environment detected');
+// Note: The 'mp' global should be available when this runs
+// If you see errors about 'mp is not defined', check:
+// 1. conf.json has "enable-nodejs": true
+// 2. You're running ragemp-server.exe (not node)
+console.log('[Server] Initializing modules...');
 
 // Initialize database connection
 database.connect();
