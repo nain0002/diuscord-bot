@@ -89,41 +89,63 @@ A fully functional RAGE:MP roleplay server with a complete suite of features inc
 
 ## 🚀 Quick Start
 
+### ⚠️ CRITICAL: Correct Server Startup
+
+**The RAGE:MP server MUST be started with `server.exe`, NOT with Node.js!**
+
+Common mistake: Running `node index.js` or `npm start` will cause `mp is not defined` error.
+
+### Setup Steps
+
 1. **Download RAGE:MP Server** from [rage.mp](https://rage.mp/)
+   - Download "Server Package for Windows"
+   - Extract to `C:\RAGEMP\server-files\`
+   - Verify `server.exe` exists
 
-2. **Clone or download this repository** into your RAGE:MP server directory
-
-3. **Install dependencies**:
+2. **Setup workspace** (for admin panel):
    ```bash
+   # Create workspace folder
+   mkdir C:\RAGEMP\workspace
+   cd C:\RAGEMP\workspace
+   
+   # Install dependencies
    npm install
    ```
+
+3. **Copy files to correct locations**:
+   - Copy `packages/` to `C:\RAGEMP\server-files\packages\`
+   - Copy `client_packages/` to `C:\RAGEMP\server-files\client_packages\`
+   - Copy `conf.json` to `C:\RAGEMP\server-files\conf.json`
+   - Copy `.env` to BOTH `C:\RAGEMP\workspace\.env` AND `C:\RAGEMP\server-files\.env`
 
 4. **Configure database**:
    - Edit `.env` file with your MySQL credentials
    - Database tables will be created automatically on first run
 
-5. **Start the game server**:
-   ```bash
-   # Windows
-   ragemp-server.exe
-   
-   # Linux
-   ./ragemp-server
-   ```
+5. **Start the servers** (TWO separate terminals):
 
-6. **Start the admin panel** (in a new terminal):
+   **Terminal 1 - Admin Panel:**
    ```bash
+   cd C:\RAGEMP\workspace
    npm run admin
    ```
-   Access at: `http://localhost:3000`
-   Default login: `admin` / `admin123`
+   Access at: `http://localhost:3000` | Login: `admin` / `admin123`
 
-7. **Connect to the game server** via RAGE:MP client
+   **Terminal 2 - RAGE:MP Game Server:**
+   ```bash
+   cd C:\RAGEMP\server-files
+   server.exe
+   ```
+   ✅ Use `server.exe` | ❌ DO NOT use `node` or `npm`
 
-For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)  
+6. **Connect to the game server** via RAGE:MP client
+
+**❌ Getting `mp is not defined` error?** See [CRITICAL_ERROR_FIX.md](CRITICAL_ERROR_FIX.md)  
+
+For detailed setup instructions, see [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md)  
 For admin panel guide, see [MODERN_ADMIN_PANEL_GUIDE.md](MODERN_ADMIN_PANEL_GUIDE.md)  
-For installation help, see [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md)  
-For starting servers, see [HOW_TO_START.md](HOW_TO_START.md)
+For starting servers, see [HOW_TO_START.md](HOW_TO_START.md)  
+For quick fixes, see [QUICK_FIX.md](QUICK_FIX.md)
 
 ## 📁 Project Structure
 
@@ -247,9 +269,9 @@ This project is open source and available under the MIT License.
 ## 📞 Support & Documentation
 
 ### Setup & Installation
-- [SETUP_GUIDE.md](SETUP_GUIDE.md) - Basic setup instructions
+- [CRITICAL_ERROR_FIX.md](CRITICAL_ERROR_FIX.md) - **FIX: `mp is not defined` error** ⚠️
 - [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md) - Detailed installation guide
-- [HOW_TO_START.md](HOW_TO_START.md) - How to start the servers
+- [HOW_TO_START.md](HOW_TO_START.md) - How to start the servers correctly
 - [QUICK_FIX.md](QUICK_FIX.md) - Common issues and quick fixes
 
 ### Features & Systems
