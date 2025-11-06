@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Inventory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .inventory-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .inventory-container.active {
+            display: flex;
+        }
+
+        .inventory-panel {
+            width: 90%;
+            max-width: 1200px;
+            height: 80vh;
+            background: rgba(15, 15, 25, 0.75);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .inventory-header {
+            padding: 25px 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .inventory-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
+        }
+
+        .inventory-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .stat-icon {
+            font-size: 20px;
+        }
+
+        .weight-bar {
+            width: 200px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .weight-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            border-radius: 10px;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .weight-fill.warning {
+            background: linear-gradient(90deg, #f39c12, #e67e22);
+        }
+
+        .weight-fill.danger {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+
+        /* Tabs */
+        .inventory-tabs {
+            display: flex;
+            padding: 0 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-btn {
+            padding: 15px 25px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .tab-btn.active {
+            color: #2ecc71;
+            border-bottom-color: #2ecc71;
+        }
+
+        /* Content */
+        .inventory-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .item-slot {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-slot:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #2ecc71;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.3);
+        }
+
+        .item-slot.has-item {
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        .item-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+
+        .item-name {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .item-count {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .item-weight {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+        }
+
+        /* Item Actions Context Menu */
+        .context-menu {
+            position: fixed;
+            background: rgba(15, 15, 25, 0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 10px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .context-menu.active {
+            display: block;
+        }
+
+        .context-item {
+            padding: 12px 20px;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .context-item:hover {
+            background: rgba(46, 204, 113, 0.2);
+        }
+
+        .context-item.danger:hover {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        /* Quick Actions Bar */
+        .quick-actions {
+            padding: 20px 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-btn {
+            padding: 12px 25px;
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            border-radius: 10px;
+            color: #2ecc71;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: rgba(46, 204, 113, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .action-btn.danger {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+        }
+
+        .action-btn.danger:hover {
+            background: rgba(231, 76, 60, 0.3);
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            width: 40px;
+            height: 40px;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e74c3c;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(231, 76, 60, 0.4);
+            transform: rotate(90deg);
+        }
+
+        /* Search Bar */
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #2ecc71;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Scrollbar */
+        .inventory-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .inventory-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .inventory-content::-webkit-scrollbar-thumb {
+            background: rgba(46, 204, 113, 0.3);
+            border-radius: 10px;
+        }
+
+        .inventory-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(46, 204, 113, 0.5);
+        }
+
+        /* Item Categories */
+        .category-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .category-weapon { color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); }
+        .category-food { color: #f39c12; border: 1px solid rgba(243, 156, 18, 0.3); }
+        .category-medical { color: #3498db; border: 1px solid rgba(52, 152, 219, 0.3); }
+        .category-tool { color: #95a5a6; border: 1px solid rgba(149, 165, 166, 0.3); }
+        .category-misc { color: #9b59b6; border: 1px solid rgba(155, 89, 182, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="inventory-container" id="inventoryContainer">
+        <div class="inventory-panel">
+            <button class="close-btn" onclick="closeInventory()">✕</button>
+            
+            <!-- Header -->
+            <div class="inventory-header">
+                <div class="inventory-title">📦 Inventory</div>
+                <div class="inventory-stats">
+                    <div class="stat-item">
+                        <span class="stat-icon">💰</span>
+                        <div>
+                            <div style="font-weight: 600;">$<span id="playerMoney">0</span></div>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.5);">Cash</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">⚖️</span>
+                        <div>
+                            <div style="font-weight: 600;"><span id="currentWeight">0</span>/<span id="maxWeight">100</span> kg</div>
+                            <div class="weight-bar">
+                                <div class="weight-fill" id="weightFill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="inventory-tabs">
+                <button class="tab-btn active" onclick="switchTab('all')">All Items</button>
+                <button class="tab-btn" onclick="switchTab('weapons')">🔫 Weapons</button>
+                <button class="tab-btn" onclick="switchTab('food')">🍔 Food</button>
+                <button class="tab-btn" onclick="switchTab('medical')">💊 Medical</button>
+                <button class="tab-btn" onclick="switchTab('tools')">🔧 Tools</button>
+                <button class="tab-btn" onclick="switchTab('misc')">📦 Misc</button>
+            </div>
+
+            <!-- Content -->
+            <div class="inventory-content">
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search items...">
+                </div>
+                <div class="inventory-grid" id="inventoryGrid">
+                    <!-- Items will be populated here -->
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div style="display: flex; gap: 15px;">
+                    <button class="action-btn" onclick="sortInventory('name')">
+                        <span>📝</span> Sort by Name
+                    </button>
+                    <button class="action-btn" onclick="sortInventory('weight')">
+                        <span>⚖️</span> Sort by Weight
+                    </button>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <button class="action-btn" onclick="quickUse()">
+                        <span>⚡</span> Quick Use
+                    </button>
+                    <button class="action-btn danger" onclick="dropAll()">
+                        <span>🗑️</span> Drop All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Context Menu -->
+        <div class="context-menu" id="contextMenu">
+            <div class="context-item" onclick="useItem()">
+                <span>✓</span> Use
+            </div>
+            <div class="context-item" onclick="giveItem()">
+                <span>👤</span> Give
+            </div>
+            <div class="context-item" onclick="splitItem()">
+                <span>✂️</span> Split
+            </div>
+            <div class="context-item danger" onclick="dropItem()">
+                <span>🗑️</span> Drop
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'all';
+        let selectedItem = null;
+        let inventoryData = [];
+
+        const categoryIcons = {
+            weapon: '🔫',
+            food: '🍔',
+            medical: '💊',
+            tool: '🔧',
+            misc: '📦'
+        };
+
+        // Open/Close inventory
+        function openInventory() {
+            document.getElementById('inventoryContainer').classList.add('active');
+            mp.trigger('getCursorState', true);
+        }
+
+        function closeInventory() {
+            document.getElementById('inventoryContainer').classList.remove('active');
+            mp.trigger('setCursorState', false);
+            mp.trigger('inventoryClosed');
+        }
+
+        // Update inventory data
+        function updateInventory(data) {
+            inventoryData = data.items || [];
+            
+            // Update stats
+            document.getElementById('playerMoney').textContent = (data.money || 0).toLocaleString();
+            document.getElementById('currentWeight').textContent = data.currentWeight || 0;
+            document.getElementById('maxWeight').textContent = data.maxWeight || 100;
+            
+            const weightPercent = ((data.currentWeight || 0) / (data.maxWeight || 100)) * 100;
+            const weightFill = document.getElementById('weightFill');
+            weightFill.style.width = weightPercent + '%';
+            
+            if (weightPercent > 90) weightFill.className = 'weight-fill danger';
+            else if (weightPercent > 70) weightFill.className = 'weight-fill warning';
+            else weightFill.className = 'weight-fill';
+            
+            renderInventory();
+        }
+
+        // Render inventory grid
+        function renderInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = inventoryData.filter(item => {
+                if (currentTab !== 'all' && item.category !== currentTab) return false;
+                if (searchTerm && !item.name.toLowerCase().includes(searchTerm)) return false;
+                return true;
+            });
+
+            grid.innerHTML = '';
+            
+            filtered.forEach((item, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'item-slot has-item';
+                slot.onclick = () => selectItem(item, index);
+                slot.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    showContextMenu(e, item, index);
+                };
+                
+                slot.innerHTML = `
+                    <div class="category-badge category-${item.category}">${item.category}</div>
+                    ${item.count > 1 ? `<div class="item-count">×${item.count}</div>` : ''}
+                    <div class="item-icon">${categoryIcons[item.category] || '📦'}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-weight">${item.weight}kg</div>
+                `;
+                
+                grid.appendChild(slot);
+            });
+
+            // Add empty slots
+            const emptySlots = Math.max(0, 30 - filtered.length);
+            for (let i = 0; i < emptySlots; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'item-slot';
+                slot.innerHTML = '<div style="color: rgba(255,255,255,0.2); font-size: 12px;">Empty</div>';
+                grid.appendChild(slot);
+            }
+        }
+
+        // Switch tabs
+        function switchTab(tab) {
+            currentTab = tab === 'all' ? 'all' : tab.slice(0, -1); // Remove 's' from plural
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            renderInventory();
+        }
+
+        // Select item
+        function selectItem(item, index) {
+            selectedItem = { ...item, index };
+        }
+
+        // Show context menu
+        function showContextMenu(e, item, index) {
+            selectedItem = { ...item, index };
+            const menu = document.getElementById('contextMenu');
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+            menu.classList.add('active');
+        }
+
+        // Hide context menu on click outside
+        document.addEventListener('click', () => {
+            document.getElementById('contextMenu').classList.remove('active');
+        });
+
+        // Item actions
+        function useItem() {
+            if (selectedItem) {
+                mp.trigger('useInventoryItem', selectedItem.index);
+            }
+        }
+
+        function giveItem() {
+            if (selectedItem) {
+                mp.trigger('giveInventoryItem', selectedItem.index);
+            }
+        }
+
+        function splitItem() {
+            if (selectedItem && selectedItem.count > 1) {
+                mp.trigger('splitInventoryItem', selectedItem.index);
+            }
+        }
+
+        function dropItem() {
+            if (selectedItem) {
+                mp.trigger('dropInventoryItem', selectedItem.index);
+            }
+        }
+
+        function quickUse() {
+            if (selectedItem) {
+                mp.trigger('useInventoryItem', selectedItem.index);
+            }
+        }
+
+        function dropAll() {
+            if (confirm('Are you sure you want to drop all items?')) {
+                mp.trigger('dropAllItems');
+            }
+        }
+
+        function sortInventory(sortBy) {
+            if (sortBy === 'name') {
+                inventoryData.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortBy === 'weight') {
+                inventoryData.sort((a, b) => b.weight - a.weight);
+            }
+            renderInventory();
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', renderInventory);
+
+        // ESC key to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeInventory();
+            }
+        });
+    </script>
+</body>
+</html>

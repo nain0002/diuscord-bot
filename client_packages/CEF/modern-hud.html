@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern HUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .hud-container {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+
+        /* Top Bar - Status */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-box {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-icon {
+            font-size: 20px;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+
+        .status-text {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        .health { color: #ff4757; }
+        .armor { color: #5352ed; }
+        .money { color: #2ecc71; }
+
+        /* Bottom Left - Info */
+        .bottom-left {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+        }
+
+        .info-card {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 250px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-name {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+        }
+
+        .info-label {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .info-value {
+            font-weight: 600;
+        }
+
+        /* Bottom Right - Mini Map Overlay */
+        .minimap-overlay {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+        }
+
+        .location-box {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .location-name {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        .coordinates {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        /* Top Right - Time & Date */
+        .top-right {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+        }
+
+        .time-box {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .time {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        .date {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            margin-top: 3px;
+        }
+
+        /* Progress Bars */
+        .progress-bars {
+            position: absolute;
+            bottom: 150px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .progress-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-icon {
+            font-size: 18px;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+
+        .progress-bar {
+            width: 150px;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .health-fill { background: linear-gradient(90deg, #ff4757, #ff6b81); }
+        .armor-fill { background: linear-gradient(90deg, #5352ed, #7d7aff); }
+
+        /* Notifications */
+        .notifications {
+            position: absolute;
+            top: 100px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 300px;
+        }
+
+        .notification {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            border-left: 3px solid #2ecc71;
+            border-radius: 8px;
+            padding: 15px;
+            color: #fff;
+            font-size: 13px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Vehicle HUD (shown when in vehicle) */
+        .vehicle-hud {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+        }
+
+        .vehicle-hud.active {
+            display: block;
+        }
+
+        .vehicle-display {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px 30px;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .speed-meter {
+            text-align: center;
+        }
+
+        .speed-value {
+            font-size: 48px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+            text-shadow: 0 0 20px rgba(46, 204, 113, 0.8);
+        }
+
+        .speed-unit {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .vehicle-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .vehicle-stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .stat-icon {
+            font-size: 16px;
+        }
+
+        .fuel-bar, .engine-bar {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .fuel-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f39c12, #f1c40f);
+            border-radius: 10px;
+        }
+
+        .engine-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hud-container">
+        <!-- Top Status Bar -->
+        <div class="top-bar">
+            <div class="status-box">
+                <span class="status-icon health">❤️</span>
+                <span class="status-text health" id="health">100</span>
+            </div>
+            <div class="status-box">
+                <span class="status-icon armor">🛡️</span>
+                <span class="status-text armor" id="armor">0</span>
+            </div>
+            <div class="status-box">
+                <span class="status-icon money">💰</span>
+                <span class="status-text money" id="money">$0</span>
+            </div>
+        </div>
+
+        <!-- Top Right - Time -->
+        <div class="top-right">
+            <div class="time-box">
+                <div class="time" id="time">00:00</div>
+                <div class="date" id="date">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Bottom Left - Player Info -->
+        <div class="bottom-left">
+            <div class="info-card">
+                <div class="player-name" id="playerName">Loading...</div>
+                <div class="player-info">
+                    <div class="info-item">
+                        <span class="info-label">Job:</span>
+                        <span class="info-value" id="job">Unemployed</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Level:</span>
+                        <span class="info-value" id="level">1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Bank:</span>
+                        <span class="info-value" id="bank">$0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Right - Location -->
+        <div class="minimap-overlay">
+            <div class="location-box">
+                <div class="location-name" id="location">Los Santos</div>
+                <div class="coordinates" id="coords">X: 0 Y: 0</div>
+            </div>
+
+            <!-- Progress Bars -->
+            <div class="progress-bars">
+                <div class="progress-item">
+                    <span class="progress-icon health">❤️</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill health-fill" id="healthBar" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <span class="progress-icon armor">🛡️</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill armor-fill" id="armorBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle HUD -->
+        <div class="vehicle-hud" id="vehicleHud">
+            <div class="vehicle-display">
+                <div class="speed-meter">
+                    <div class="speed-value" id="speed">0</div>
+                    <div class="speed-unit">KM/H</div>
+                </div>
+                <div class="vehicle-info">
+                    <div class="vehicle-stat">
+                        <span class="stat-icon">⛽</span>
+                        <div class="fuel-bar">
+                            <div class="fuel-fill" id="fuelBar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="vehicle-stat">
+                        <span class="stat-icon">🔧</span>
+                        <div class="engine-bar">
+                            <div class="engine-fill" id="engineBar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="vehicle-stat">
+                        <span style="color: rgba(255,255,255,0.6); font-size: 11px;" id="vehicleName">Vehicle</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="notifications" id="notifications"></div>
+    </div>
+
+    <script>
+        // Update HUD data
+        function updateHUD(data) {
+            if (data.health !== undefined) {
+                document.getElementById('health').textContent = Math.round(data.health);
+                document.getElementById('healthBar').style.width = data.health + '%';
+            }
+            if (data.armor !== undefined) {
+                document.getElementById('armor').textContent = Math.round(data.armor);
+                document.getElementById('armorBar').style.width = data.armor + '%';
+            }
+            if (data.money !== undefined) {
+                document.getElementById('money').textContent = '$' + data.money.toLocaleString();
+            }
+            if (data.bank !== undefined) {
+                document.getElementById('bank').textContent = '$' + data.bank.toLocaleString();
+            }
+            if (data.playerName) {
+                document.getElementById('playerName').textContent = data.playerName;
+            }
+            if (data.job) {
+                document.getElementById('job').textContent = data.job;
+            }
+            if (data.level !== undefined) {
+                document.getElementById('level').textContent = data.level;
+            }
+            if (data.location) {
+                document.getElementById('location').textContent = data.location;
+            }
+            if (data.coords) {
+                document.getElementById('coords').textContent = `X: ${Math.round(data.coords.x)} Y: ${Math.round(data.coords.y)}`;
+            }
+        }
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').textContent = `${hours}:${minutes}`;
+            
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dateStr = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+            document.getElementById('date').textContent = dateStr;
+        }
+
+        // Update vehicle HUD
+        function updateVehicle(data) {
+            const vehicleHud = document.getElementById('vehicleHud');
+            if (data.inVehicle) {
+                vehicleHud.classList.add('active');
+                if (data.speed !== undefined) {
+                    document.getElementById('speed').textContent = Math.round(data.speed);
+                }
+                if (data.fuel !== undefined) {
+                    document.getElementById('fuelBar').style.width = data.fuel + '%';
+                }
+                if (data.engine !== undefined) {
+                    document.getElementById('engineBar').style.width = data.engine + '%';
+                }
+                if (data.vehicleName) {
+                    document.getElementById('vehicleName').textContent = data.vehicleName;
+                }
+            } else {
+                vehicleHud.classList.remove('active');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            
+            if (type === 'error') notif.style.borderLeftColor = '#e74c3c';
+            if (type === 'success') notif.style.borderLeftColor = '#2ecc71';
+            if (type === 'warning') notif.style.borderLeftColor = '#f39c12';
+            
+            document.getElementById('notifications').appendChild(notif);
+            
+            setTimeout(() => {
+                notif.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => notif.remove(), 300);
+            }, 5000);
+        }
+
+        // Initialize
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>

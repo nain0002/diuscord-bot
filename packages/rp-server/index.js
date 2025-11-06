@@ -46,6 +46,9 @@ require('./modules/vehicles');
 require('./modules/admin');
 require('./modules/spawn');
 require('./modules/admin-bridge');
+require('./modules/admin-commands');
+require('./modules/user-menu');
+require('./modules/character-creator');
 
 console.log('=================================');
 console.log('Server Initialization Complete!');

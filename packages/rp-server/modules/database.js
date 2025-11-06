@@ -44,6 +44,7 @@ const database = {
                     email VARCHAR(100) UNIQUE NOT NULL,
                     social_club VARCHAR(100),
                     admin_level INT DEFAULT 0,
+                    is_admin BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP NULL,
                     is_banned BOOLEAN DEFAULT FALSE,
@@ -56,8 +57,10 @@ const database = {
                 `CREATE TABLE IF NOT EXISTS characters (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     user_id INT NOT NULL,
-                    char_name VARCHAR(50) NOT NULL,
-                    char_surname VARCHAR(50) NOT NULL,
+                    first_name VARCHAR(50) NOT NULL,
+                    last_name VARCHAR(50) NOT NULL,
+                    char_name VARCHAR(50),
+                    char_surname VARCHAR(50),
                     age INT NOT NULL,
                     gender VARCHAR(10) NOT NULL,
                     skin_data TEXT,
@@ -71,6 +74,11 @@ const database = {
                     bank_balance INT DEFAULT 10000,
                     job VARCHAR(50) DEFAULT 'unemployed',
                     job_rank INT DEFAULT 0,
+                    level INT DEFAULT 1,
+                    skill_driving INT DEFAULT 0,
+                    skill_shooting INT DEFAULT 0,
+                    skill_stamina INT DEFAULT 0,
+                    playtime INT DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_played TIMESTAMP NULL,
                     play_time INT DEFAULT 0,
@@ -86,7 +94,7 @@ const database = {
                     account_number VARCHAR(20) UNIQUE NOT NULL,
                     balance INT DEFAULT 10000,
                     account_type VARCHAR(20) DEFAULT 'checking',
-                    pin VARCHAR(4) NOT NULL,
+                    pin VARCHAR(4) DEFAULT '0000',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
                     INDEX idx_character_id (character_id),
@@ -172,11 +180,39 @@ const database = {
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     character_id INT NOT NULL,
                     item_name VARCHAR(100) NOT NULL,
-                    item_type VARCHAR(50) NOT NULL,
+                    category VARCHAR(50) DEFAULT 'misc',
                     quantity INT DEFAULT 1,
+                    weight FLOAT DEFAULT 0,
                     data TEXT,
                     FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
                     INDEX idx_character_id (character_id)
+                )`,
+
+                // Character appearance table
+                `CREATE TABLE IF NOT EXISTS character_appearance (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    character_id INT NOT NULL UNIQUE,
+                    face_preset INT DEFAULT 0,
+                    nose_width INT DEFAULT 0,
+                    nose_length INT DEFAULT 0,
+                    jaw_width INT DEFAULT 0,
+                    lip_thickness INT DEFAULT 0,
+                    hair_style INT DEFAULT 0,
+                    hair_color INT DEFAULT 0,
+                    eye_color INT DEFAULT 0,
+                    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
+                    INDEX idx_character_id (character_id)
+                )`,
+
+                // Bans table
+                `CREATE TABLE IF NOT EXISTS bans (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    social_club VARCHAR(100) NOT NULL,
+                    character_id INT,
+                    reason TEXT,
+                    admin_name VARCHAR(100),
+                    banned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_social_club (social_club)
                 )`
             ];
 
