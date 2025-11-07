@@ -223,23 +223,40 @@ function getUptime() {
     return `${hours}h ${minutes}m`;
 }
 
+// Helper function to check if player is admin
+function isPlayerAdmin(player) {
+    if (!player || !mp.players.exists(player)) return false;
+    const isAdmin = player.getVariable('isAdmin');
+    const adminLevel = player.getVariable('admin_level') || 0;
+    return isAdmin || adminLevel > 0;
+}
+
 // Register admin commands
 mp.events.add('getAdminStatistics', async (player) => {
-    if (!player.getVariable('isAdmin')) return;
+    if (!isPlayerAdmin(player)) {
+        player.outputChatBox('!{#FF0000}[Admin] You do not have permission!');
+        return;
+    }
     
     const stats = await adminCommands.getStatistics();
     player.call('updateAdminStats', [stats]);
 });
 
 mp.events.add('getOnlinePlayerList', (player) => {
-    if (!player.getVariable('isAdmin')) return;
+    if (!isPlayerAdmin(player)) {
+        player.outputChatBox('!{#FF0000}[Admin] You do not have permission!');
+        return;
+    }
     
     const players = adminCommands.getOnlinePlayers();
-    player.call('updatePlayerList', [JSON.stringify(players)]);
+    player.call('updateAdminPlayerList', [players]);
 });
 
 mp.events.add('adminCommand', async (player, action) => {
-    if (!player.getVariable('isAdmin')) return;
+    if (!isPlayerAdmin(player)) {
+        player.outputChatBox('!{#FF0000}[Admin] You do not have permission!');
+        return;
+    }
     
     switch (action) {
         case 'heal':
@@ -261,7 +278,10 @@ mp.events.add('adminCommand', async (player, action) => {
 });
 
 mp.events.add('adminSpawnVehicle', (player, model) => {
-    if (!player.getVariable('isAdmin')) return;
+    if (!isPlayerAdmin(player)) {
+        player.outputChatBox('!{#FF0000}[Admin] You do not have permission!');
+        return;
+    }
     
     const success = adminCommands.spawnVehicle(player, model);
     if (success) {
@@ -272,7 +292,10 @@ mp.events.add('adminSpawnVehicle', (player, model) => {
 });
 
 mp.events.add('adminSpawnItem', async (player, itemName) => {
-    if (!player.getVariable('isAdmin')) return;
+    if (!isPlayerAdmin(player)) {
+        player.outputChatBox('!{#FF0000}[Admin] You do not have permission!');
+        return;
+    }
     
     const success = await adminCommands.spawnItem(player, itemName);
     if (success) {
@@ -283,17 +306,26 @@ mp.events.add('adminSpawnItem', async (player, itemName) => {
 });
 
 mp.events.add('adminSetWeather', (player, weather) => {
-    if (!player.getVariable('isAdmin')) return;
+    if (!isPlayerAdmin(player)) {
+        player.outputChatBox('!{#FF0000}[Admin] You do not have permission!');
+        return;
+    }
     adminCommands.setWeather(weather);
 });
 
 mp.events.add('adminSetTime', (player, hour) => {
-    if (!player.getVariable('isAdmin')) return;
+    if (!isPlayerAdmin(player)) {
+        player.outputChatBox('!{#FF0000}[Admin] You do not have permission!');
+        return;
+    }
     adminCommands.setTime(hour);
 });
 
 mp.events.add('adminModerate', async (player, action, targetId) => {
-    if (!player.getVariable('isAdmin')) return;
+    if (!isPlayerAdmin(player)) {
+        player.outputChatBox('!{#FF0000}[Admin] You do not have permission!');
+        return;
+    }
     
     const adminName = player.getVariable('characterName') || player.name;
     
@@ -313,20 +345,28 @@ mp.events.add('adminModerate', async (player, action, targetId) => {
     }
 });
 
-mp.events.add('adminPlayerAction', (player, targetId, action) => {
-    if (!player.getVariable('isAdmin')) return;
+mp.events.add('adminPlayerAction', (player, action, targetId) => {
+    if (!isPlayerAdmin(player)) {
+        player.outputChatBox('!{#FF0000}[Admin] You do not have permission!');
+        return;
+    }
+    
+    console.log(`[Admin] Player action: ${action} on target ${targetId}`);
     
     switch (action) {
         case 'heal':
-            adminCommands.healPlayer(targetId);
+            adminCommands.healPlayer(parseInt(targetId));
+            player.outputChatBox(`!{#00FF00}[Admin] Healed player ${targetId}`);
             break;
         case 'teleport':
-            adminCommands.teleportToPlayer(player, targetId);
+            adminCommands.teleportToPlayer(player, parseInt(targetId));
+            player.outputChatBox(`!{#00FF00}[Admin] Teleported to player ${targetId}`);
             break;
         case 'kick':
-            adminCommands.kickPlayer(targetId);
+            adminCommands.kickPlayer(parseInt(targetId));
             break;
     }
 });
 
+console.log('[Admin Commands] Module loaded');
 module.exports = adminCommands;

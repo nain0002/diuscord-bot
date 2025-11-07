@@ -27,8 +27,11 @@ mp.keys.bind(0x75, false, function() { // F6
         const player = mp.players.local;
         if (!player) return;
         
-        const isAdmin = player.getVariable('is_admin');
-        if (!isAdmin) {
+        // Check BOTH isAdmin and admin_level for compatibility
+        const isAdmin = player.getVariable('isAdmin');
+        const adminLevel = player.getVariable('admin_level') || 0;
+        
+        if (!isAdmin && adminLevel === 0) {
             mp.gui.chat.push('!{#FF0000}You must be an admin to use this menu!');
             return;
         }
