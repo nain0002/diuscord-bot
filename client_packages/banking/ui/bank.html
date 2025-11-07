@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Bank - Banking System</title>
+    <link rel="stylesheet" href="bank.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-background">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="glow-orb orb-3"></div>
+        <div class="light-trail trail-1"></div>
+        <div class="light-trail trail-2"></div>
+        <div class="light-trail trail-3"></div>
+    </div>
+
+    <!-- Main Banking Interface -->
+    <div class="bank-container" id="bankContainer">
+        
+        <!-- Header Section -->
+        <div class="bank-header glass-panel">
+            <div class="header-left">
+                <div class="bank-logo">
+                    <div class="logo-icon"></div>
+                    <h1>FUTURE<span class="neon-text">BANK</span></h1>
+                </div>
+                <div class="account-quick-info">
+                    <span class="account-type" id="accountType">Personal</span>
+                    <span class="account-number" id="accountNumber">ACC-000000</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="player-profile">
+                    <div class="player-avatar" id="playerAvatar">
+                        <div class="avatar-border"></div>
+                        <img src="avatar-placeholder.png" alt="Avatar" id="avatarImg">
+                    </div>
+                    <div class="player-info">
+                        <h3 id="playerName">Player Name</h3>
+                        <p id="playerStatus">Online</p>
+                    </div>
+                </div>
+                <button class="close-btn" id="closeBtn">
+                    <span>✕</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="bank-content">
+            
+            <!-- Left Sidebar - Navigation -->
+            <div class="sidebar glass-panel">
+                <nav class="nav-menu">
+                    <button class="nav-item active" data-tab="overview">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Overview</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-item" data-tab="deposit">
+                        <span class="nav-icon">💰</span>
+                        <span class="nav-text">Deposit</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-item" data-tab="withdraw">
+                        <span class="nav-icon">💸</span>
+                        <span class="nav-text">Withdraw</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-item" data-tab="transfer">
+                        <span class="nav-icon">🔄</span>
+                        <span class="nav-text">Transfer</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-item" data-tab="transactions">
+                        <span class="nav-icon">📋</span>
+                        <span class="nav-text">History</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-item" data-tab="loans">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-text">Loans</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-item" data-tab="cards">
+                        <span class="nav-icon">💳</span>
+                        <span class="nav-text">Cards</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-item manager-only" data-tab="manager" style="display: none;">
+                        <span class="nav-icon">⚙️</span>
+                        <span class="nav-text">Manager</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Main Panel - Content -->
+            <div class="main-panel">
+                
+                <!-- Overview Tab -->
+                <div class="tab-content active" id="tab-overview">
+                    <div class="balance-card glass-panel">
+                        <div class="balance-header">
+                            <h2>Account Balance</h2>
+                            <div class="balance-actions">
+                                <button class="icon-btn" id="refreshBalance">🔄</button>
+                            </div>
+                        </div>
+                        <div class="balance-amount">
+                            <span class="currency">$</span>
+                            <span class="amount" id="mainBalance">0.00</span>
+                        </div>
+                        <div class="balance-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Total Deposits</span>
+                                <span class="stat-value" id="totalDeposits">$0.00</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Total Withdrawals</span>
+                                <span class="stat-value" id="totalWithdrawals">$0.00</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Interest Rate</span>
+                                <span class="stat-value" id="interestRate">0.05%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions glass-panel">
+                        <h3>Quick Actions</h3>
+                        <div class="actions-grid">
+                            <button class="action-card" data-action="deposit">
+                                <span class="action-icon">💰</span>
+                                <span class="action-text">Deposit Cash</span>
+                            </button>
+                            <button class="action-card" data-action="withdraw">
+                                <span class="action-icon">💸</span>
+                                <span class="action-text">Withdraw</span>
+                            </button>
+                            <button class="action-card" data-action="transfer">
+                                <span class="action-icon">🔄</span>
+                                <span class="action-text">Transfer</span>
+                            </button>
+                            <button class="action-card" data-action="loans">
+                                <span class="action-icon">📈</span>
+                                <span class="action-text">Get Loan</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="recent-transactions glass-panel">
+                        <h3>Recent Transactions</h3>
+                        <div class="transactions-list" id="recentTransactions">
+                            <!-- Transactions will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deposit Tab -->
+                <div class="tab-content" id="tab-deposit">
+                    <div class="glass-panel action-panel">
+                        <h2>Deposit Cash</h2>
+                        <p class="panel-description">Transfer cash from your pocket to your bank account</p>
+                        
+                        <div class="cash-info">
+                            <div class="info-item">
+                                <span class="label">Cash on Hand</span>
+                                <span class="value" id="cashOnHand">$0</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="depositAmount">Amount to Deposit</label>
+                            <div class="input-wrapper">
+                                <span class="input-prefix">$</span>
+                                <input type="number" id="depositAmount" placeholder="0.00" min="1" step="1">
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <input type="range" id="depositSlider" min="0" max="100" value="0" class="amount-slider">
+                            <div class="slider-labels">
+                                <span>0%</span>
+                                <span>25%</span>
+                                <span>50%</span>
+                                <span>75%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+
+                        <div class="quick-amounts">
+                            <button class="quick-amount" data-amount="100">$100</button>
+                            <button class="quick-amount" data-amount="500">$500</button>
+                            <button class="quick-amount" data-amount="1000">$1K</button>
+                            <button class="quick-amount" data-amount="5000">$5K</button>
+                            <button class="quick-amount" data-amount="all">All</button>
+                        </div>
+
+                        <button class="action-btn primary" id="depositBtn">
+                            <span class="btn-icon">💰</span>
+                            <span>Deposit</span>
+                            <div class="btn-glow"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Withdraw Tab -->
+                <div class="tab-content" id="tab-withdraw">
+                    <div class="glass-panel action-panel">
+                        <h2>Withdraw Cash</h2>
+                        <p class="panel-description">Withdraw money from your bank account</p>
+                        
+                        <div class="cash-info">
+                            <div class="info-item">
+                                <span class="label">Available Balance</span>
+                                <span class="value" id="availableBalance">$0</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="withdrawAmount">Amount to Withdraw</label>
+                            <div class="input-wrapper">
+                                <span class="input-prefix">$</span>
+                                <input type="number" id="withdrawAmount" placeholder="0.00" min="1" step="1">
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <input type="range" id="withdrawSlider" min="0" max="100" value="0" class="amount-slider">
+                            <div class="slider-labels">
+                                <span>0%</span>
+                                <span>25%</span>
+                                <span>50%</span>
+                                <span>75%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+
+                        <div class="quick-amounts">
+                            <button class="quick-amount" data-amount="100">$100</button>
+                            <button class="quick-amount" data-amount="500">$500</button>
+                            <button class="quick-amount" data-amount="1000">$1K</button>
+                            <button class="quick-amount" data-amount="5000">$5K</button>
+                            <button class="quick-amount" data-amount="all">All</button>
+                        </div>
+
+                        <button class="action-btn primary" id="withdrawBtn">
+                            <span class="btn-icon">💸</span>
+                            <span>Withdraw</span>
+                            <div class="btn-glow"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Transfer Tab -->
+                <div class="tab-content" id="tab-transfer">
+                    <div class="glass-panel action-panel">
+                        <h2>Transfer Money</h2>
+                        <p class="panel-description">Send money to another player's account</p>
+
+                        <div class="input-group">
+                            <label for="transferRecipient">Recipient Account Number or ID</label>
+                            <div class="input-wrapper">
+                                <span class="input-prefix">👤</span>
+                                <input type="text" id="transferRecipient" placeholder="ACC-000000 or Player ID">
+                                <button class="input-suffix-btn" id="lookupPlayer">🔍</button>
+                            </div>
+                            <div class="recipient-info" id="recipientInfo" style="display: none;">
+                                <span class="recipient-name" id="recipientName"></span>
+                                <span class="recipient-status online" id="recipientStatus">●</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="transferAmount">Amount</label>
+                            <div class="input-wrapper">
+                                <span class="input-prefix">$</span>
+                                <input type="number" id="transferAmount" placeholder="0.00" min="1" step="1">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="transferNote">Note (Optional)</label>
+                            <textarea id="transferNote" placeholder="Add a note for this transfer..." rows="3"></textarea>
+                        </div>
+
+                        <div class="transfer-summary">
+                            <div class="summary-row">
+                                <span>Transfer Amount</span>
+                                <span id="transferDisplayAmount">$0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Transaction Fee</span>
+                                <span id="transferFee">$0.00</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total</span>
+                                <span id="transferTotal">$0.00</span>
+                            </div>
+                        </div>
+
+                        <button class="action-btn primary" id="transferBtn">
+                            <span class="btn-icon">🔄</span>
+                            <span>Transfer</span>
+                            <div class="btn-glow"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Transactions Tab -->
+                <div class="tab-content" id="tab-transactions">
+                    <div class="glass-panel transactions-panel">
+                        <div class="transactions-header">
+                            <h2>Transaction History</h2>
+                            <div class="transactions-filters">
+                                <select id="transactionFilter" class="glass-select">
+                                    <option value="all">All Types</option>
+                                    <option value="Deposit">Deposits</option>
+                                    <option value="Withdraw">Withdrawals</option>
+                                    <option value="Transfer_In">Transfers In</option>
+                                    <option value="Transfer_Out">Transfers Out</option>
+                                </select>
+                                <input type="date" id="transactionDate" class="glass-input">
+                            </div>
+                        </div>
+
+                        <div class="transactions-container" id="transactionsContainer">
+                            <!-- Transaction items will be loaded here -->
+                        </div>
+
+                        <div class="pagination">
+                            <button class="page-btn" id="prevPage">← Previous</button>
+                            <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                            <button class="page-btn" id="nextPage">Next →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loans Tab -->
+                <div class="tab-content" id="tab-loans">
+                    <div class="glass-panel loans-panel">
+                        <h2>Loan Services</h2>
+                        <p class="panel-description">Apply for a loan or manage existing loans</p>
+
+                        <div class="loan-calculator">
+                            <h3>Loan Calculator</h3>
+                            <div class="input-group">
+                                <label for="loanAmount">Loan Amount</label>
+                                <input type="number" id="loanAmount" class="glass-input" placeholder="$10,000" min="1000" step="1000">
+                            </div>
+                            <div class="input-group">
+                                <label for="loanTerm">Loan Term (Months)</label>
+                                <select id="loanTerm" class="glass-select">
+                                    <option value="6">6 Months</option>
+                                    <option value="12">12 Months</option>
+                                    <option value="24">24 Months</option>
+                                    <option value="36">36 Months</option>
+                                </select>
+                            </div>
+                            <div class="loan-results">
+                                <div class="result-row">
+                                    <span>Interest Rate</span>
+                                    <span id="loanInterest">5.5%</span>
+                                </div>
+                                <div class="result-row">
+                                    <span>Monthly Payment</span>
+                                    <span id="monthlyPayment">$0</span>
+                                </div>
+                                <div class="result-row total">
+                                    <span>Total Repayment</span>
+                                    <span id="totalRepayment">$0</span>
+                                </div>
+                            </div>
+                            <button class="action-btn primary" id="applyLoanBtn">
+                                <span>Apply for Loan</span>
+                            </button>
+                        </div>
+
+                        <div class="active-loans" id="activeLoans">
+                            <h3>Your Loans</h3>
+                            <div class="loans-list">
+                                <!-- Active loans will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cards Tab -->
+                <div class="tab-content" id="tab-cards">
+                    <div class="glass-panel cards-panel">
+                        <h2>Credit & Debit Cards</h2>
+                        <div class="cards-grid" id="cardsGrid">
+                            <!-- Cards will be displayed here -->
+                        </div>
+                        <button class="action-btn secondary" id="requestCardBtn">
+                            <span>Request New Card</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manager Tab -->
+                <div class="tab-content" id="tab-manager">
+                    <div class="glass-panel manager-panel">
+                        <h2>Bank Manager Dashboard</h2>
+                        <div class="manager-stats">
+                            <div class="stat-card glass-panel">
+                                <span class="stat-icon">👥</span>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="totalAccounts">0</span>
+                                    <span class="stat-label">Total Accounts</span>
+                                </div>
+                            </div>
+                            <div class="stat-card glass-panel">
+                                <span class="stat-icon">💰</span>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="totalBalance">$0</span>
+                                    <span class="stat-label">Total Balance</span>
+                                </div>
+                            </div>
+                            <div class="stat-card glass-panel">
+                                <span class="stat-icon">📊</span>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="todayTransactions">0</span>
+                                    <span class="stat-label">Today's Transactions</span>
+                                </div>
+                            </div>
+                            <div class="stat-card glass-panel">
+                                <span class="stat-icon">🚨</span>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="pendingLoans">0</span>
+                                    <span class="stat-label">Pending Loans</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="manager-actions">
+                            <button class="manager-btn" id="viewAccountsBtn">View All Accounts</button>
+                            <button class="manager-btn" id="approveLoansBtn">Approve Loans</button>
+                            <button class="manager-btn" id="manageSecurityBtn">Security Settings</button>
+                            <button class="manager-btn danger" id="lockdownBtn">Initiate Lockdown</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN Entry Modal -->
+    <div class="modal-overlay" id="pinModal" style="display: none;">
+        <div class="modal glass-panel">
+            <h3>Enter PIN</h3>
+            <p>Please enter your 4-digit PIN to continue</p>
+            <div class="pin-input">
+                <input type="password" maxlength="1" class="pin-digit" data-index="0">
+                <input type="password" maxlength="1" class="pin-digit" data-index="1">
+                <input type="password" maxlength="1" class="pin-digit" data-index="2">
+                <input type="password" maxlength="1" class="pin-digit" data-index="3">
+            </div>
+            <div class="modal-actions">
+                <button class="action-btn secondary" id="cancelPinBtn">Cancel</button>
+                <button class="action-btn primary" id="confirmPinBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModal" style="display: none;">
+        <div class="modal glass-panel">
+            <h3 id="confirmTitle">Confirm Action</h3>
+            <p id="confirmMessage">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button class="action-btn secondary" id="cancelConfirmBtn">Cancel</button>
+                <button class="action-btn primary" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notifications-container" id="notificationsContainer">
+        <!-- Notifications will appear here -->
+    </div>
+
+    <!-- Robbery Alert -->
+    <div class="robbery-alert" id="robberyAlert" style="display: none;">
+        <div class="alert-content glass-panel">
+            <div class="alert-icon">🚨</div>
+            <h2>BANK ROBBERY IN PROGRESS</h2>
+            <p class="alert-location" id="robberyLocation">Pacific Standard Bank</p>
+            <div class="alert-timer" id="robberyTimer">05:00</div>
+            <button class="action-btn danger" id="callPoliceBtn">Call Police</button>
+        </div>
+    </div>
+
+    <script src="bank.js"></script>
+</body>
+</html>
