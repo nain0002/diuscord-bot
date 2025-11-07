@@ -49,24 +49,32 @@ async function getPlayerHUDData(player) {
 
         const char = rows[0];
 
-        // Get player health and armor from RAGE:MP
-        const health = player.health || 100;
-        const armor = player.armour || 0;
+        // Get player health and armor from RAGE:MP with safety checks
+        let health = 100;
+        let armor = 0;
+        
+        try {
+            health = player.health || 100;
+            armor = player.armour || 0;
+        } catch (e) {
+            // Use defaults if properties not available
+        }
 
-        // Calculate XP max based on level
-        const xpMax = calculateXPRequired(char.level);
+        // Calculate XP max based on level (prevent invalid calculations)
+        const level = Math.max(1, char.level || 1);
+        const xpMax = calculateXPRequired(level);
 
         const hudData = {
-            name: char.name || char.username,
-            level: char.level || 1,
+            name: char.name || char.username || 'Player',
+            level: level,
             health: Math.min(100, Math.max(0, health)),
             armor: Math.min(100, Math.max(0, armor)),
             hunger: Math.min(100, Math.max(0, char.hunger || 100)),
             thirst: Math.min(100, Math.max(0, char.thirst || 100)),
-            xp: char.xp || 0,
+            xp: Math.max(0, char.xp || 0),
             xpMax: xpMax,
-            cash: char.money || 0,
-            bank: char.bank_balance || 0
+            cash: Math.max(0, char.money || 0),
+            bank: Math.max(0, char.bank_balance || 0)
         };
 
         return hudData;
@@ -99,7 +107,10 @@ async function sendHUDData(player) {
         const hudData = await getPlayerHUDData(player);
         if (hudData) {
             const jsonData = JSON.stringify(hudData);
-            player.call('updateHUDData', [jsonData]);
+            // Safety check before calling
+            if (player && mp.players.exists(player)) {
+                player.call('updateHUDData', [jsonData]);
+            }
         }
     } catch (error) {
         console.error('[HUD System] Error sending HUD data:', error);
@@ -118,45 +129,60 @@ function updateHUDElement(player, element, data) {
             return;
         }
 
+        // Validate data object
+        if (!data || typeof data !== 'object') {
+            return;
+        }
+
         switch (element) {
             case 'money':
-                player.call('updateHUDMoney', [data.cash, data.bank]);
+                const cash = Math.max(0, data.cash || 0);
+                const bank = Math.max(0, data.bank || 0);
+                player.call('updateHUDMoney', [cash, bank]);
                 break;
 
             case 'xp':
-                const xpMax = calculateXPRequired(data.level || 1);
-                player.call('updateHUDXP', [data.xp, xpMax]);
+                const xp = Math.max(0, data.xp || 0);
+                const level = Math.max(1, data.level || 1);
+                const xpMax = calculateXPRequired(level);
+                player.call('updateHUDXP', [xp, xpMax]);
                 break;
 
             case 'hunger':
-                player.call('updateHUDHunger', [data.value]);
+                const hunger = Math.min(100, Math.max(0, data.value || 0));
+                player.call('updateHUDHunger', [hunger]);
                 break;
 
             case 'thirst':
-                player.call('updateHUDThirst', [data.value]);
+                const thirst = Math.min(100, Math.max(0, data.value || 0));
+                player.call('updateHUDThirst', [thirst]);
                 break;
 
             case 'weather':
-                player.call('updateHUDWeather', [data.type, data.icon]);
+                const weatherType = String(data.type || 'Clear');
+                const weatherIcon = String(data.icon || '☀️');
+                player.call('updateHUDWeather', [weatherType, weatherIcon]);
                 break;
 
             case 'mission':
                 const objectives = JSON.stringify(data.objectives || []);
+                const distance = Math.max(0, data.distance || 0);
                 player.call('updateHUDMission', [
-                    data.active,
-                    data.title,
+                    Boolean(data.active),
+                    String(data.title || ''),
                     objectives,
-                    data.distance
+                    distance
                 ]);
                 break;
 
             case 'notification':
-                player.call('showHUDNotification', [
-                    data.title,
-                    data.message,
-                    data.type || 'info',
-                    data.icon || 'ℹ️'
-                ]);
+                // Sanitize notification data
+                const title = String(data.title || 'Notification').substring(0, 100);
+                const message = String(data.message || '').substring(0, 200);
+                const type = String(data.type || 'info').replace(/[^a-z]/g, '');
+                const icon = String(data.icon || 'ℹ️').substring(0, 10);
+                
+                player.call('showHUDNotification', [title, message, type, icon]);
                 break;
         }
     } catch (error) {

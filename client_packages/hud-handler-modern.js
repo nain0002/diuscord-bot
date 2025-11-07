@@ -110,19 +110,23 @@ function updatePlayerStats() {
     const health = player.getHealth();
     const armor = player.getArmour();
     
+    // Trigger damage effect BEFORE updating lastHealth
+    if (health < lastHealth && lastHealth > 0) {
+        if (hudBrowser && isHUDReady) {
+            hudBrowser.execute('if(window.HUD) window.HUD.triggerDamageFlash()');
+        }
+    }
+    
     // Only update if values changed
     if (health !== lastHealth || armor !== lastArmor) {
         lastHealth = health;
         lastArmor = armor;
         
-        // Trigger damage effect if health decreased
-        if (health < lastHealth) {
-            hudBrowser.execute('window.HUD.triggerDamageFlash()');
-        }
-        
         // Note: Cash, bank, hunger, thirst, XP come from server
-        hudBrowser.execute(`window.HUD.updateHealth(${health})`);
-        hudBrowser.execute(`window.HUD.updateArmor(${armor})`);
+        if (hudBrowser && isHUDReady) {
+            hudBrowser.execute(`if(window.HUD) window.HUD.updateHealth(${Math.max(0, Math.min(100, health))})`);
+            hudBrowser.execute(`if(window.HUD) window.HUD.updateArmor(${Math.max(0, Math.min(100, armor))})`);
+        }
     }
 }
 
@@ -143,8 +147,7 @@ const WEAPON_NAMES = {
     487013001: 'Pump Shotgun',
     2578377531: 'Flashlight',
     1737195953: 'Nightstick',
-    2578778090: 'Knife',
-    -1569615261: 'Fist'
+    2578778090: 'Knife'
 };
 
 const WEAPON_ICONS = {
@@ -164,32 +167,38 @@ const WEAPON_ICONS = {
 };
 
 function updateWeaponInfo() {
+    if (!hudBrowser || !isHUDReady) return;
+    
     const player = mp.players.local;
     const currentWeapon = player.weapon;
     
-    if (currentWeapon !== lastWeapon) {
-        lastWeapon = currentWeapon;
-        
-        const weaponName = WEAPON_NAMES[currentWeapon] || 'Unknown';
-        const weaponIcon = WEAPON_ICONS[currentWeapon] || '❓';
-        
-        const ammo = player.getAmmoInClip();
-        const ammoMax = player.getAmmo(currentWeapon);
-        
-        hudBrowser.execute(
-            `window.HUD.updateWeapon("${weaponName}", ${ammo}, ${ammoMax}, "${weaponIcon}")`
-        );
-    } else {
-        // Update ammo count even if weapon didn't change
-        const ammo = player.getAmmoInClip();
-        const ammoMax = player.getAmmo(currentWeapon);
-        const weaponName = WEAPON_NAMES[currentWeapon] || 'Unknown';
-        const weaponIcon = WEAPON_ICONS[currentWeapon] || '❓';
-        
-        hudBrowser.execute(
-            `window.HUD.updateWeapon("${weaponName}", ${ammo}, ${ammoMax}, "${weaponIcon}")`
-        );
+    const weaponName = WEAPON_NAMES[currentWeapon] || 'Unknown';
+    const weaponIcon = WEAPON_ICONS[currentWeapon] || '❓';
+    
+    // Safe ammo retrieval
+    let ammo = 0;
+    let ammoMax = 0;
+    
+    try {
+        if (typeof player.getAmmoInClip === 'function') {
+            ammo = player.getAmmoInClip() || 0;
+        }
+        if (typeof player.getAmmo === 'function') {
+            ammoMax = player.getAmmo(currentWeapon) || 0;
+        }
+    } catch (e) {
+        // Ammo functions might not be available
     }
+    
+    // Escape special characters for JS execution
+    const safeName = weaponName.replace(/"/g, '\\"').replace(/'/g, "\\'");
+    const safeIcon = weaponIcon.replace(/"/g, '\\"');
+    
+    hudBrowser.execute(
+        `if(window.HUD) window.HUD.updateWeapon("${safeName}", ${ammo}, ${ammoMax}, "${safeIcon}")`
+    );
+    
+    lastWeapon = currentWeapon;
 }
 
 // ============================================
@@ -197,6 +206,8 @@ function updateWeaponInfo() {
 // ============================================
 
 function updateVehicleInfo() {
+    if (!hudBrowser || !isHUDReady) return;
+    
     const player = mp.players.local;
     const vehicle = player.vehicle;
     
@@ -204,26 +215,38 @@ function updateVehicleInfo() {
     if (vehicle && mp.vehicles.exists(vehicle)) {
         if (lastVehicle !== vehicle) {
             lastVehicle = vehicle;
-            hudBrowser.execute('window.HUD.updateVehicleStatus(true)');
+            hudBrowser.execute('if(window.HUD) window.HUD.updateVehicleStatus(true)');
         }
         
-        // Get vehicle data
-        const speed = vehicle.getSpeed() * 2.23694; // Convert to MPH
-        const fuel = vehicle.getVariable('fuel') || 100;
-        const engine = vehicle.getVariable('engine') || false;
+        // Get vehicle data with safety checks
+        let speed = 0;
+        try {
+            if (typeof vehicle.getSpeed === 'function') {
+                speed = vehicle.getSpeed() * 2.23694; // Convert to MPH
+            }
+        } catch (e) {
+            speed = 0;
+        }
         
-        // Get vehicle lights and lock status
-        const lightsOn = vehicle.getVariable('lights') || false;
-        const locked = vehicle.getVariable('locked') || false;
+        const fuel = vehicle.getVariable('fuel');
+        const engine = vehicle.getVariable('engine');
+        const lightsOn = vehicle.getVariable('lights');
+        const locked = vehicle.getVariable('locked');
+        
+        // Use default values if variables are undefined
+        const safeFuel = (fuel !== undefined && fuel !== null) ? fuel : 100;
+        const safeEngine = (engine !== undefined && engine !== null) ? engine : false;
+        const safeLights = (lightsOn !== undefined && lightsOn !== null) ? lightsOn : false;
+        const safeLocked = (locked !== undefined && locked !== null) ? locked : false;
         
         hudBrowser.execute(
-            `window.HUD.updateVehicleData(${speed.toFixed(0)}, ${fuel}, ${engine}, ${lightsOn}, ${locked})`
+            `if(window.HUD) window.HUD.updateVehicleData(${Math.round(speed)}, ${safeFuel}, ${safeEngine}, ${safeLights}, ${safeLocked})`
         );
         
     } else {
         if (lastVehicle !== null) {
             lastVehicle = null;
-            hudBrowser.execute('window.HUD.updateVehicleStatus(false)');
+            hudBrowser.execute('if(window.HUD) window.HUD.updateVehicleStatus(false)');
         }
     }
 }
@@ -254,11 +277,28 @@ function getStreetName(position) {
     return 'Street';
 }
 
-// Simple zone name detection
+// Zone name detection (basic implementation)
 function getZoneName(position) {
-    // This is a placeholder - implement proper zone detection
-    const zones = ['Los Santos', 'Blaine County', 'Paleto Bay', 'Sandy Shores'];
-    return zones[Math.floor(Math.random() * zones.length)];
+    // Basic zone detection based on coordinates
+    const x = position.x;
+    const y = position.y;
+    
+    // Los Santos downtown area
+    if (x >= -1000 && x <= 1000 && y >= -1000 && y <= 1000) {
+        return 'Los Santos';
+    }
+    // Sandy Shores area
+    else if (x >= 1000 && x <= 2000 && y >= 2000 && y <= 4000) {
+        return 'Sandy Shores';
+    }
+    // Paleto Bay area
+    else if (x >= -500 && x <= 500 && y >= 6000 && y <= 7000) {
+        return 'Paleto Bay';
+    }
+    // Default to Blaine County for everything else
+    else {
+        return 'Blaine County';
+    }
 }
 
 // ============================================
@@ -336,8 +376,15 @@ mp.events.add('showHUDNotification', (title, message, type, icon) => {
     if (!isHUDReady || !hudBrowser) return;
     type = type || 'info';
     icon = icon || 'ℹ️';
+    
+    // Escape special characters to prevent JS injection
+    const safeTitle = String(title).replace(/"/g, '\\"').replace(/'/g, "\\'").replace(/\n/g, ' ');
+    const safeMessage = String(message).replace(/"/g, '\\"').replace(/'/g, "\\'").replace(/\n/g, ' ');
+    const safeType = String(type).replace(/[^a-z]/g, '');
+    const safeIcon = String(icon).replace(/"/g, '\\"');
+    
     hudBrowser.execute(
-        `window.HUD.showNotification("${title}", "${message}", "${type}", "${icon}")`
+        `if(window.HUD) window.HUD.showNotification("${safeTitle}", "${safeMessage}", "${safeType}", "${safeIcon}")`
     );
 });
 
@@ -399,7 +446,9 @@ mp.events.add('receiveHUDSettings', (settingsJson) => {
     
     try {
         hudSettings = JSON.parse(settingsJson);
-        hudBrowser.execute(`mp.events.call('loadHUDSettings', '${settingsJson}')`);
+        // Escape JSON string for safe execution
+        const safeJson = settingsJson.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/'/g, "\\'");
+        hudBrowser.execute(`if(window.HUD && mp && mp.events) mp.events.call('loadHUDSettings', '${safeJson}')`);
     } catch (error) {
         mp.gui.chat.push(`!{#FF0000}[Elite HUD] Settings receive error: ${error.message}`);
     }
@@ -409,10 +458,15 @@ mp.events.add('receiveHUDSettings', (settingsJson) => {
 // KEYBINDS
 // ============================================
 
-// F5 - Toggle HUD settings
+// F5 - Toggle HUD visibility
 mp.keys.bind(0x74, true, () => {
     if (isHUDReady && hudBrowser) {
-        hudBrowser.execute('document.getElementById("hudSettingsBtn").click()');
+        hudBrowser.execute(`
+            const hudContainer = document.getElementById('hudContainer');
+            if(hudContainer) {
+                hudContainer.classList.toggle('hud-hidden');
+            }
+        `);
     }
 });
 

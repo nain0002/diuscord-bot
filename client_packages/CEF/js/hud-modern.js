@@ -78,61 +78,67 @@ const HUDState = {
 const Elements = {};
 
 function initElements() {
-    Elements.playerName = document.getElementById('playerName');
-    Elements.playerLevel = document.getElementById('playerLevel');
-    Elements.healthFill = document.getElementById('healthFill');
-    Elements.healthText = document.getElementById('healthText');
-    Elements.armorFill = document.getElementById('armorFill');
-    Elements.armorText = document.getElementById('armorText');
-    Elements.hungerFill = document.getElementById('hungerFill');
-    Elements.hungerText = document.getElementById('hungerText');
-    Elements.thirstFill = document.getElementById('thirstFill');
-    Elements.thirstText = document.getElementById('thirstText');
-    Elements.xpFill = document.getElementById('xpFill');
-    Elements.xpText = document.getElementById('xpText');
-    Elements.cashValue = document.getElementById('cashValue');
-    Elements.bankValue = document.getElementById('bankValue');
-    Elements.gameTime = document.getElementById('gameTime');
-    Elements.realTime = document.getElementById('realTime');
-    Elements.dateDisplay = document.getElementById('dateDisplay');
-    Elements.weatherIcon = document.getElementById('weatherIcon');
-    Elements.weatherText = document.getElementById('weatherText');
-    Elements.streetName = document.getElementById('streetName');
-    Elements.zoneName = document.getElementById('zoneName');
-    Elements.compassNeedle = document.getElementById('compassNeedle');
-    Elements.weaponName = document.getElementById('weaponName');
-    Elements.ammoCurrent = document.getElementById('ammoCurrent');
-    Elements.ammoReserve = document.getElementById('ammoReserve');
-    Elements.weaponIcon = document.getElementById('weaponIcon');
-    Elements.weaponPanel = document.getElementById('weaponPanel');
-    Elements.vehiclePanel = document.getElementById('vehiclePanel');
-    Elements.speedValue = document.getElementById('speedValue');
-    Elements.fuelFill = document.getElementById('fuelFill');
-    Elements.fuelText = document.getElementById('fuelText');
-    Elements.engineIndicator = document.getElementById('engineIndicator');
-    Elements.lightsIndicator = document.getElementById('lightsIndicator');
-    Elements.lockIndicator = document.getElementById('lockIndicator');
-    Elements.missionPanel = document.getElementById('missionPanel');
-    Elements.missionTitle = document.getElementById('missionTitle');
-    Elements.missionObjectives = document.getElementById('missionObjectives');
-    Elements.missionDistance = document.getElementById('missionDistance');
-    Elements.voiceIndicator = document.getElementById('voiceIndicator');
-    Elements.damageOverlay = document.getElementById('damageOverlay');
-    Elements.notificationContainer = document.getElementById('notificationContainer');
-    Elements.hudContainer = document.getElementById('hudContainer');
-    Elements.particlesContainer = document.getElementById('particlesContainer');
-    
-    // Settings
-    Elements.hudSettingsBtn = document.getElementById('hudSettingsBtn');
-    Elements.hudSettingsMenu = document.getElementById('hudSettingsMenu');
-    Elements.closeSettingsBtn = document.getElementById('closeSettingsBtn');
-    Elements.saveSettingsBtn = document.getElementById('saveSettingsBtn');
-    
-    // Sections
-    Elements.playerStatus = document.getElementById('playerStatus');
-    Elements.moneyTime = document.getElementById('moneyTime');
-    Elements.locationMission = document.getElementById('locationMission');
-    Elements.weaponVehicle = document.getElementById('weaponVehicle');
+    try {
+        Elements.playerName = document.getElementById('playerName');
+        Elements.playerLevel = document.getElementById('playerLevel');
+        Elements.healthFill = document.getElementById('healthFill');
+        Elements.healthText = document.getElementById('healthText');
+        Elements.armorFill = document.getElementById('armorFill');
+        Elements.armorText = document.getElementById('armorText');
+        Elements.hungerFill = document.getElementById('hungerFill');
+        Elements.hungerText = document.getElementById('hungerText');
+        Elements.thirstFill = document.getElementById('thirstFill');
+        Elements.thirstText = document.getElementById('thirstText');
+        Elements.xpFill = document.getElementById('xpFill');
+        Elements.xpText = document.getElementById('xpText');
+        Elements.cashValue = document.getElementById('cashValue');
+        Elements.bankValue = document.getElementById('bankValue');
+        Elements.gameTime = document.getElementById('gameTime');
+        Elements.realTime = document.getElementById('realTime');
+        Elements.dateDisplay = document.getElementById('dateDisplay');
+        Elements.weatherIcon = document.getElementById('weatherIcon');
+        Elements.weatherText = document.getElementById('weatherText');
+        Elements.streetName = document.getElementById('streetName');
+        Elements.zoneName = document.getElementById('zoneName');
+        Elements.compassNeedle = document.getElementById('compassNeedle');
+        Elements.weaponName = document.getElementById('weaponName');
+        Elements.ammoCurrent = document.getElementById('ammoCurrent');
+        Elements.ammoReserve = document.getElementById('ammoReserve');
+        Elements.weaponIcon = document.getElementById('weaponIcon');
+        Elements.weaponPanel = document.getElementById('weaponPanel');
+        Elements.vehiclePanel = document.getElementById('vehiclePanel');
+        Elements.speedValue = document.getElementById('speedValue');
+        Elements.fuelFill = document.getElementById('fuelFill');
+        Elements.fuelText = document.getElementById('fuelText');
+        Elements.engineIndicator = document.getElementById('engineIndicator');
+        Elements.lightsIndicator = document.getElementById('lightsIndicator');
+        Elements.lockIndicator = document.getElementById('lockIndicator');
+        Elements.missionPanel = document.getElementById('missionPanel');
+        Elements.missionTitle = document.getElementById('missionTitle');
+        Elements.missionObjectives = document.getElementById('missionObjectives');
+        Elements.missionDistance = document.getElementById('missionDistance');
+        Elements.voiceIndicator = document.getElementById('voiceIndicator');
+        Elements.damageOverlay = document.getElementById('damageOverlay');
+        Elements.notificationContainer = document.getElementById('notificationContainer');
+        Elements.hudContainer = document.getElementById('hudContainer');
+        Elements.particlesContainer = document.getElementById('particlesContainer');
+        
+        // Settings
+        Elements.hudSettingsBtn = document.getElementById('hudSettingsBtn');
+        Elements.hudSettingsMenu = document.getElementById('hudSettingsMenu');
+        Elements.closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        Elements.saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        
+        // Sections
+        Elements.playerStatus = document.getElementById('playerStatus');
+        Elements.moneyTime = document.getElementById('moneyTime');
+        Elements.locationMission = document.getElementById('locationMission');
+        Elements.weaponVehicle = document.getElementById('weaponVehicle');
+        
+        console.log('[Elite HUD] All elements initialized successfully');
+    } catch (error) {
+        console.error('[Elite HUD] Error initializing elements:', error);
+    }
 }
 
 // ============================================
@@ -152,7 +158,12 @@ function updatePlayerInfo(data) {
 
 function updateHealth(value) {
     value = Math.max(0, Math.min(100, value));
+    
+    // Damage flash is now triggered from client before updating state
+    
     HUDState.player.health = value;
+    
+    if (!Elements.healthFill || !Elements.healthText) return;
     
     Elements.healthFill.style.width = value + '%';
     Elements.healthText.textContent = Math.round(value);
@@ -162,11 +173,6 @@ function updateHealth(value) {
         Elements.healthFill.classList.add('critical');
     } else {
         Elements.healthFill.classList.remove('critical');
-    }
-    
-    // Damage flash effect
-    if (value < HUDState.player.health) {
-        triggerDamageFlash();
     }
 }
 
@@ -206,8 +212,11 @@ function updateXP(current, max) {
     HUDState.player.xp = current;
     HUDState.player.xpMax = max;
     
-    const percentage = (current / max) * 100;
-    Elements.xpFill.style.width = percentage + '%';
+    if (!Elements.xpFill || !Elements.xpText) return;
+    
+    // Prevent division by zero
+    const percentage = max > 0 ? (current / max) * 100 : 0;
+    Elements.xpFill.style.width = Math.min(100, Math.max(0, percentage)) + '%';
     Elements.xpText.textContent = `XP: ${current} / ${max}`;
 }
 
@@ -382,14 +391,28 @@ function updateVoiceStatus(active) {
 // ============================================
 
 function showNotification(title, message, type = 'info', icon = 'ℹ️') {
+    if (!Elements.notificationContainer) return;
+    
+    // Limit to 5 notifications max
+    const notifications = Elements.notificationContainer.children;
+    if (notifications.length >= 5) {
+        // Remove oldest notification
+        notifications[0].remove();
+    }
+    
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     
+    // Escape HTML to prevent XSS
+    const safeTitle = String(title).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const safeMessage = String(message).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const safeIcon = String(icon).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
     notification.innerHTML = `
-        <div class="notification-icon">${icon}</div>
+        <div class="notification-icon">${safeIcon}</div>
         <div class="notification-content">
-            <div class="notification-title">${title}</div>
-            <div class="notification-message">${message}</div>
+            <div class="notification-title">${safeTitle}</div>
+            <div class="notification-message">${safeMessage}</div>
         </div>
     `;
     
@@ -397,10 +420,14 @@ function showNotification(title, message, type = 'info', icon = 'ℹ️') {
     
     // Auto-remove after 5 seconds
     setTimeout(() => {
-        notification.classList.add('fadeOut');
-        setTimeout(() => {
-            notification.remove();
-        }, 500);
+        if (notification.parentNode) {
+            notification.classList.add('fadeOut');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 500);
+        }
     }, 5000);
 }
 
@@ -409,13 +436,19 @@ function showNotification(title, message, type = 'info', icon = 'ℹ️') {
 // ============================================
 
 function triggerDamageFlash() {
+    if (!Elements.damageOverlay) return;
+    
     Elements.damageOverlay.classList.add('active');
     setTimeout(() => {
-        Elements.damageOverlay.classList.remove('active');
+        if (Elements.damageOverlay) {
+            Elements.damageOverlay.classList.remove('active');
+        }
     }, 500);
 }
 
 function createParticles() {
+    if (!Elements.particlesContainer) return;
+    
     const particleCount = 50;
     
     for (let i = 0; i < particleCount; i++) {
