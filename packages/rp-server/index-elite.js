@@ -92,8 +92,8 @@ console.log('\n[5/8] 👮 Loading admin systems...');
 require('./modules/admin-fixed');
 console.log('      ✅ Admin core loaded');
 
-require('./modules/admin-commands');
-console.log('      ✅ Admin commands loaded');
+// require('./modules/admin-commands');  // ❌ OLD - DISABLED (replaced by enhanced version)
+// console.log('      ✅ Admin commands loaded');
 
 require('./modules/admin-commands-enhanced');
 console.log('      ✅ Enhanced admin commands loaded');

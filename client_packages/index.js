@@ -8,10 +8,10 @@ console.log('Loading Client-Side Scripts...');
 console.log('=================================');
 
 // Core modules (must load first)
-require('./modules/auth.js');
-require('./modules/hud.js');
+// require('./modules/auth.js');           // ❌ OLD - DISABLED (using auth.js instead)
+// require('./modules/hud.js');            // ❌ OLD - DISABLED (using hud-handler-modern.js instead)
 require('./modules/banking.js');
-require('./modules/inventory.js');
+// require('./modules/inventory.js');      // ❌ OLD - DISABLED (using inventory-handler-modern.js instead)
 require('./modules/shops.js');
 require('./modules/jobs.js');
 require('./modules/vehicles.js');
@@ -27,8 +27,8 @@ require('./auth.js');              // Modern authentication handler
 require('./hud-handler-modern.js');  // Elite HUD System v3.0.0 ✨
 // require('./inventory.js');      // OLD inventory - DISABLED
 require('./inventory-handler-modern.js'); // MODERN INVENTORY SYSTEM ✨
-require('./admin-menu-handler.js'); // Admin menu (F6) - Basic
-require('./admin-menu-handler-enhanced.js'); // Admin menu (F6) - Enhanced
+// require('./admin-menu-handler.js'); // ❌ OLD - DISABLED (using enhanced version)
+require('./admin-menu-handler-enhanced.js'); // Admin menu (F6) - Enhanced ✅
 require('./admin-utils.js');       // Admin utilities (freeze, appearance, etc.)
 require('./user-menu-handler.js'); // User menu (M key)
 require('./bot-cars.js');          // Bot cars system

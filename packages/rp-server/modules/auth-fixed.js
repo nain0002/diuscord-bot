@@ -158,7 +158,22 @@ mp.events.add('attemptRegister', async (player, username, password, email) => {
 // CHARACTER CREATION
 // ============================================================================
 
+// Handle both event names for compatibility
 mp.events.add('createCharacter', async (player, data) => {
+    await handleCharacterCreation(player, data);
+});
+
+mp.events.add('saveCharacterCreation', async (player, dataJson) => {
+    try {
+        const data = typeof dataJson === 'string' ? JSON.parse(dataJson) : dataJson;
+        await handleCharacterCreation(player, data);
+    } catch (error) {
+        console.error('[Auth] saveCharacterCreation parse error:', error);
+        player.call('characterCreationFailed', 'Invalid character data');
+    }
+});
+
+async function handleCharacterCreation(player, data) {
     try {
         const playerData = playerModule.getPlayerData(player);
         
