@@ -22,6 +22,10 @@ mp.keys.bind(0x4D, false, () => { // M key
         createUserMenu();
         // Small delay for browser to initialize
         setTimeout(() => {
+            if (!userMenuBrowser) {
+                mp.gui.chat.push('!{#FF0000}[User Menu] Browser initialization failed');
+                return;
+            }
             userMenuOpen = true;
             userMenuBrowser.execute('openMenu()');
             mp.gui.cursor.visible = true;
@@ -54,8 +58,12 @@ mp.events.add('getUserMenuData', () => {
 
 // Update menu with data from server
 mp.events.add('updateUserMenuData', (dataJson) => {
-    if (userMenuBrowser) {
-        userMenuBrowser.execute(`updateMenuData(${dataJson})`);
+    if (userMenuBrowser && userMenuOpen) {
+        try {
+            userMenuBrowser.execute(`updateMenuData(${dataJson})`);
+        } catch (error) {
+            console.error('[User Menu] Update error:', error);
+        }
     }
 });
 

@@ -305,8 +305,15 @@ mp.keys.bind(0x1B, false, () => { // ESC
 
 mp.events.add('inventoryNotification', (message, type) => {
     try {
+        // Escape quotes properly
+        const safeMessage = String(message || '').replace(/'/g, "\\\\'");
+        const safeType = String(type || 'info').replace(/'/g, "\\\\'");
+        
         if (inventoryBrowser && inventoryOpen) {
-            inventoryBrowser.execute(`showNotification('${message}', '${type || 'info'}')`);
+            inventoryBrowser.execute(`showNotification('${safeMessage}', '${safeType}')`);
+        } else {
+            // Fallback to HUD notification if inventory closed
+            mp.events.call('showNotification', message, type || 'info');
         }
         
         // Also show in chat
@@ -330,10 +337,16 @@ mp.events.add('inventoryNotification', (message, type) => {
 
 mp.events.add('itemAdded', (itemName, quantity) => {
     try {
-        mp.gui.chat.push(`!{#00FF88}+${quantity}x ${itemName}`);
+        const safeItemName = String(itemName || 'Item').replace(/'/g, "\\\\'");
+        const safeQuantity = parseInt(quantity) || 1;
+        
+        mp.gui.chat.push(`!{#00FF88}+${safeQuantity}x ${safeItemName}`);
         
         if (inventoryOpen && inventoryBrowser) {
-            inventoryBrowser.execute(`showNotification('+${quantity}x ${itemName}', 'success')`);
+            inventoryBrowser.execute(`showNotification('+${safeQuantity}x ${safeItemName}', 'success')`);
+        } else {
+            // Show in HUD if inventory closed
+            mp.events.call('showNotification', `+${safeQuantity}x ${safeItemName}`, 'success');
         }
     } catch (error) {
         console.error('[Inventory] Item added notification error:', error);
@@ -342,10 +355,16 @@ mp.events.add('itemAdded', (itemName, quantity) => {
 
 mp.events.add('itemRemoved', (itemName, quantity) => {
     try {
-        mp.gui.chat.push(`!{#FF006E}-${quantity}x ${itemName}`);
+        const safeItemName = String(itemName || 'Item').replace(/'/g, "\\\\'");
+        const safeQuantity = parseInt(quantity) || 1;
+        
+        mp.gui.chat.push(`!{#FF006E}-${safeQuantity}x ${safeItemName}`);
         
         if (inventoryOpen && inventoryBrowser) {
-            inventoryBrowser.execute(`showNotification('-${quantity}x ${itemName}', 'error')`);
+            inventoryBrowser.execute(`showNotification('-${safeQuantity}x ${safeItemName}', 'error')`);
+        } else {
+            // Show in HUD if inventory closed
+            mp.events.call('showNotification', `-${safeQuantity}x ${safeItemName}`, 'error');
         }
     } catch (error) {
         console.error('[Inventory] Item removed notification error:', error);

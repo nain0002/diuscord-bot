@@ -542,15 +542,21 @@ function updateRealTime() {
 if (typeof mp !== 'undefined') {
     // Update handlers
     mp.events.add('updateHUDPlayer', (data) => {
-        const parsed = JSON.parse(data);
-        updatePlayerInfo(parsed);
-        if (parsed.health !== undefined) updateHealth(parsed.health);
-        if (parsed.armor !== undefined) updateArmor(parsed.armor);
-        if (parsed.hunger !== undefined) updateHunger(parsed.hunger);
-        if (parsed.thirst !== undefined) updateThirst(parsed.thirst);
-        if (parsed.xp !== undefined) updateXP(parsed.xp, parsed.xpMax || 1000);
-        if (parsed.cash !== undefined || parsed.bank !== undefined) {
-            updateMoney(parsed.cash, parsed.bank);
+        try {
+            const parsed = JSON.parse(data);
+            if (!parsed || typeof parsed !== 'object') return;
+            
+            updatePlayerInfo(parsed);
+            if (parsed.health !== undefined) updateHealth(parsed.health);
+            if (parsed.armor !== undefined) updateArmor(parsed.armor);
+            if (parsed.hunger !== undefined) updateHunger(parsed.hunger);
+            if (parsed.thirst !== undefined) updateThirst(parsed.thirst);
+            if (parsed.xp !== undefined) updateXP(parsed.xp, parsed.xpMax || 1000);
+            if (parsed.cash !== undefined || parsed.bank !== undefined) {
+                updateMoney(parsed.cash, parsed.bank);
+            }
+        } catch (error) {
+            console.error('[Elite HUD] Error parsing player data:', error);
         }
     });
     
@@ -579,8 +585,13 @@ if (typeof mp !== 'undefined') {
     });
     
     mp.events.add('updateHUDMission', (active, title, objectives, distance) => {
-        const parsedObjectives = objectives ? JSON.parse(objectives) : [];
-        updateMission(active, title, parsedObjectives, distance);
+        try {
+            const parsedObjectives = objectives ? JSON.parse(objectives) : [];
+            updateMission(active, title, parsedObjectives, distance);
+        } catch (error) {
+            console.error('[Elite HUD] Error parsing mission objectives:', error);
+            updateMission(active, title, [], distance);
+        }
     });
     
     mp.events.add('updateHUDVoice', (active) => {
@@ -596,9 +607,15 @@ if (typeof mp !== 'undefined') {
     });
     
     mp.events.add('loadHUDSettings', (settingsJson) => {
-        const settings = JSON.parse(settingsJson);
-        HUDState.settings = { ...HUDState.settings, ...settings };
-        applySettings();
+        try {
+            const settings = JSON.parse(settingsJson);
+            if (settings && typeof settings === 'object') {
+                HUDState.settings = { ...HUDState.settings, ...settings };
+                applySettings();
+            }
+        } catch (error) {
+            console.error('[Elite HUD] Error loading settings:', error);
+        }
     });
 }
 

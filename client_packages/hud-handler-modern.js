@@ -10,11 +10,14 @@
 
 let hudBrowser = null;
 let isHUDReady = false;
+let isInitializing = false;
 let updateInterval = null;
 let lastHealth = 100;
 let lastArmor = 0;
 let lastWeapon = null;
 let lastVehicle = null;
+let initAttempts = 0;
+const MAX_INIT_ATTEMPTS = 3;
 
 // Settings
 let hudSettings = {
@@ -35,15 +38,50 @@ let hudSettings = {
 
 function initializeHUD() {
     try {
-        mp.gui.chat.push('[Elite HUD] Initializing...');
+        // Guard against double initialization
+        if (isHUDReady || isInitializing) {
+            mp.gui.chat.push('[Elite HUD] Already initialized or initializing...');
+            return;
+        }
+        
+        // Guard against too many attempts
+        if (initAttempts >= MAX_INIT_ATTEMPTS) {
+            mp.gui.chat.push('!{#FF0000}[Elite HUD] Max initialization attempts reached');
+            return;
+        }
+        
+        isInitializing = true;
+        initAttempts++;
+        mp.gui.chat.push(`[Elite HUD] Initializing... (Attempt ${initAttempts}/${MAX_INIT_ATTEMPTS})`);
+        
+        // Cleanup any existing browser
+        if (hudBrowser) {
+            try {
+                hudBrowser.destroy();
+            } catch (e) {
+                // Already destroyed
+            }
+            hudBrowser = null;
+        }
         
         // Create CEF browser
         hudBrowser = mp.browsers.new('package://CEF/hud-modern.html');
         
+        if (!hudBrowser) {
+            throw new Error('Failed to create browser');
+        }
+        
         // Wait for browser to load
         setTimeout(() => {
+            if (!hudBrowser) {
+                mp.gui.chat.push('!{#FF0000}[Elite HUD] Browser was destroyed during initialization');
+                isInitializing = false;
+                return;
+            }
+            
             isHUDReady = true;
-            mp.gui.chat.push('[Elite HUD] Initialized successfully');
+            isInitializing = false;
+            mp.gui.chat.push('!{#00FF88}[Elite HUD] Initialized successfully');
             
             // Load saved settings
             loadHUDSettings();
@@ -56,7 +94,18 @@ function initializeHUD() {
         }, 1000);
         
     } catch (error) {
+        isInitializing = false;
         mp.gui.chat.push(`!{#FF0000}[Elite HUD] Initialization error: ${error.message}`);
+        
+        // Cleanup on error
+        if (hudBrowser) {
+            try {
+                hudBrowser.destroy();
+            } catch (e) {
+                // Ignore
+            }
+            hudBrowser = null;
+        }
     }
 }
 
@@ -474,10 +523,14 @@ mp.keys.bind(0x74, true, () => {
 // PLAYER EVENTS
 // ============================================
 
-// Player ready event
+// Player ready event (primary initialization point)
 mp.events.add('playerReady', () => {
-    mp.gui.chat.push('[Elite HUD] Player ready, initializing HUD...');
-    initializeHUD();
+    if (!isHUDReady && !isInitializing) {
+        mp.gui.chat.push('[Elite HUD] Player ready, initializing HUD...');
+        setTimeout(() => {
+            initializeHUD();
+        }, 500); // Small delay to ensure other systems ready
+    }
 });
 
 // Character loaded event
@@ -502,31 +555,91 @@ mp.events.add('playerDeath', () => {
 });
 
 // ============================================
+// UNIVERSAL NOTIFICATION HANDLER (for compatibility)
+// ============================================
+
+/**
+ * Generic notification event for backwards compatibility
+ * This allows other modules to call mp.events.call('showNotification', ...)
+ * and have it display in the Elite HUD
+ */
+mp.events.add('showNotification', (message, type = 'info', icon = null) => {
+    if (!isHUDReady || !hudBrowser) {
+        // Fallback to chat if HUD not ready
+        mp.gui.chat.push(`[${type.toUpperCase()}] ${message}`);
+        return;
+    }
+    
+    // Map generic types to HUD notification format
+    const typeMap = {
+        'success': 'success',
+        'error': 'error',
+        'warning': 'warning',
+        'info': 'info'
+    };
+    
+    const mappedType = typeMap[type] || 'info';
+    
+    // Auto-select icon based on type if not provided
+    const iconMap = {
+        'success': '✅',
+        'error': '❌',
+        'warning': '⚠️',
+        'info': 'ℹ️'
+    };
+    
+    const displayIcon = icon || iconMap[mappedType] || 'ℹ️';
+    
+    // Escape special characters
+    const safeMessage = String(message || '').replace(/\"/g, '\\\\\"').replace(/'/g, \"\\\\'\" ).replace(/\n/g, ' ');
+    const safeIcon = String(displayIcon).replace(/\"/g, '\\\\\"').substring(0, 10);
+    const safeType = String(mappedType).replace(/[^a-z]/g, '');
+    
+    // Show notification in HUD
+    hudBrowser.execute(
+        `if(window.HUD) window.HUD.showNotification("Notification", "${safeMessage}", "${safeType}", "${safeIcon}")`
+    );
+});
+
+// ============================================
 // CLEANUP
 // ============================================
 
 mp.events.add('playerQuit', () => {
+    cleanupHUD();
+});
+
+function cleanupHUD() {
+    // Clear update interval
     if (updateInterval) {
         clearInterval(updateInterval);
+        updateInterval = null;
     }
+    
+    // Destroy browser
     if (hudBrowser) {
-        hudBrowser.destroy();
+        try {
+            hudBrowser.destroy();
+        } catch (e) {
+            // Already destroyed
+        }
+        hudBrowser = null;
     }
-});
+    
+    // Reset state
+    isHUDReady = false;
+    isInitializing = false;
+    lastHealth = 100;
+    lastArmor = 0;
+    lastWeapon = null;
+    lastVehicle = null;
+}
 
 // ============================================
 // INITIALIZATION ON LOAD
 // ============================================
 
-// Check if player is already spawned
-setTimeout(() => {
-    const player = mp.players.local;
-    const characterId = player.getVariable('character_id');
-    
-    if (characterId && !isHUDReady) {
-        mp.gui.chat.push('[Elite HUD] Auto-initializing...');
-        initializeHUD();
-    }
-}, 2000);
+// Auto-initialization removed to prevent conflicts
+// HUD will initialize on playerReady event only
 
 mp.gui.chat.push('[Elite HUD] Handler loaded successfully');

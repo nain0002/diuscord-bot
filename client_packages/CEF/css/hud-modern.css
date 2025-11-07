@@ -901,9 +901,14 @@ body {
     box-shadow: 0 0 20px var(--glow-color);
 }
 
-/* Hide settings button when HUD is hidden */
+/* Keep settings button visible when HUD is hidden to allow toggling back */
 .hud-container.hud-hidden .hud-settings-btn {
-    display: none;
+    display: flex;
+    opacity: 0.5;
+}
+
+.hud-container.hud-hidden .hud-settings-btn:hover {
+    opacity: 1;
 }
 
 .hud-settings-menu {
