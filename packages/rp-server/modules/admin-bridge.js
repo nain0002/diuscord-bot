@@ -10,8 +10,9 @@ let ws = null;
 let reconnectInterval = null;
 let isConnected = false;
 
-// Admin panel WebSocket URL (add /gameserver path)
-const ADMIN_WS_URL = process.env.ADMIN_WS_URL || 'ws://localhost:3001/gameserver';
+// Admin panel WebSocket URL (connects to admin panel WebSocket server)
+// The admin panel WebSocket runs on same port as HTTP server
+const ADMIN_WS_URL = process.env.ADMIN_WS_URL || 'ws://localhost:3002';
 
 // Initialize bridge
 function initBridge() {
