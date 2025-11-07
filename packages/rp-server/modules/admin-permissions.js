@@ -138,7 +138,7 @@ class AdminPermissions {
                 return { success: false, error: 'Invalid admin level (0-5)' };
             }
 
-            const userId = player.getVariable('userId');
+            const userId = player.getVariable('user_id');
             if (!userId) {
                 return { success: false, error: 'User ID not found' };
             }

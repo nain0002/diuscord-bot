@@ -504,6 +504,11 @@ const database = {
 
     isConnected: () => {
         return pool !== null && pool !== undefined;
+    },
+
+    execute: async (sql, params = []) => {
+        // Alias for query (they work the same with mysql2/promise)
+        return await database.query(sql, params);
     }
 };
 

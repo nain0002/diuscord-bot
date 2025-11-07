@@ -4,7 +4,7 @@ const db = require('./database');
 // Request user menu data
 mp.events.add('requestUserMenuData', async (player) => {
     try {
-        const characterId = player.getVariable('characterId');
+        const characterId = player.getVariable('character_id');
         if (!characterId) return;
         
         // Get character data
@@ -56,7 +56,7 @@ mp.events.add('requestUserMenuData', async (player) => {
 
 // Handle user menu actions
 mp.events.add('userMenuAction', (player, action) => {
-    const characterId = player.getVariable('characterId');
+    const characterId = player.getVariable('character_id');
     if (!characterId) return;
     
     switch (action) {
@@ -98,7 +98,7 @@ mp.events.add('openAccessoriesMenu', (player) => {
 });
 
 mp.events.add('showIDCard', (player) => {
-    const characterId = player.getVariable('characterId');
+    const characterId = player.getVariable('character_id');
     const name = player.getVariable('characterName');
     const job = player.getVariable('job') || 'Unemployed';
     const level = player.getVariable('level') || 1;

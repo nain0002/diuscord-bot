@@ -5,7 +5,7 @@ const db = require('./database');
 mp.events.add('saveCharacterCreation', async (player, dataJson) => {
     try {
         const data = JSON.parse(dataJson);
-        const userId = player.getVariable('userId');
+        const userId = player.getVariable('user_id');
         
         if (!userId) {
             player.outputChatBox('[ERROR] User ID not found');
