@@ -149,7 +149,7 @@ class AdminPermissions {
             );
 
             player.setVariable('admin_level', level);
-            player.setVariable('is_admin', level > 0);
+            player.setVariable('isAdmin', level > 0);
 
             const levelName = this.getLevelName(level);
             return { success: true, level, levelName };

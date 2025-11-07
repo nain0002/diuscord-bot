@@ -33,7 +33,7 @@ mp.events.add('saveCharacterCreation', async (player, dataJson) => {
         );
         
         // Set player variables
-        player.setVariable('characterId', characterId);
+        player.setVariable('character_id', characterId);
         player.setVariable('characterName', `${data.firstName} ${data.lastName}`);
         player.setVariable('money', 5000);
         player.setVariable('level', 1);
@@ -112,7 +112,7 @@ async function giveStarterItems(characterId) {
 // Load character appearance on spawn
 mp.events.add('loadCharacterAppearance', async (player) => {
     try {
-        const characterId = player.getVariable('characterId');
+        const characterId = player.getVariable('character_id');
         if (!characterId) return;
         
         const [appearance] = await db.query(

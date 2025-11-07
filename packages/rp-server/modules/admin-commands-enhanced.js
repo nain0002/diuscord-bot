@@ -187,7 +187,7 @@ const adminCommands = {
     // Warn player
     async warnPlayer(player, reason, adminName) {
         if (player) {
-            const characterId = player.getVariable('characterId');
+            const characterId = player.getVariable('character_id');
             
             try {
                 // Increment warnings
@@ -442,7 +442,7 @@ function getUptime() {
 // Event handlers
 mp.events.add('getAdminStatistics', async (player) => {
     try {
-        if (!player || !player.getVariable('is_admin')) return;
+        if (!player || !player.getVariable('isAdmin')) return;
         
         const stats = await adminCommands.getStatistics();
         player.call('updateAdminStats', [stats]);
@@ -453,7 +453,7 @@ mp.events.add('getAdminStatistics', async (player) => {
 
 mp.events.add('getOnlinePlayerList', (player) => {
     try {
-        if (!player || !player.getVariable('is_admin')) return;
+        if (!player || !player.getVariable('isAdmin')) return;
         
         const players = adminCommands.getOnlinePlayers();
         player.call('updateAdminPlayerList', [players]);
@@ -526,7 +526,7 @@ mp.events.add('adminPlayerAction', async (player, action, targetId) => {
 });
 
 mp.events.add('adminCommand', async (player, action, param) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     switch(action) {
         case 'healAll':
@@ -619,7 +619,7 @@ mp.events.add('adminSpawnVehicle', (player, model, colorJson) => {
 });
 
 mp.events.add('adminSpawnObject', (player, model) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const success = adminCommands.spawnObject(player, model);
     
@@ -631,7 +631,7 @@ mp.events.add('adminSpawnObject', (player, model) => {
 });
 
 mp.events.add('adminGiveWeapon', (player, weapon) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const success = adminCommands.giveWeapon(player, weapon);
     
@@ -643,23 +643,23 @@ mp.events.add('adminGiveWeapon', (player, weapon) => {
 });
 
 mp.events.add('adminSetWeather', (player, weather) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     adminCommands.setWeather(weather);
 });
 
 mp.events.add('adminSetTime', (player, hour) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     adminCommands.setTime(hour);
 });
 
 mp.events.add('adminToggleWorld', (player, type) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     const newState = adminCommands.toggleWorld(type);
     player.outputChatBox(`!{#00FF00}${type.charAt(0).toUpperCase() + type.slice(1)} ${newState ? 'enabled' : 'disabled'}.`);
 });
 
 mp.events.add('adminWarn', async (player, targetId, reason) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const target = mp.players.at(targetId);
     if (target) {
@@ -670,7 +670,7 @@ mp.events.add('adminWarn', async (player, targetId, reason) => {
 });
 
 mp.events.add('adminMute', async (player, targetId, reason) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const target = mp.players.at(targetId);
     if (target) {
@@ -680,7 +680,7 @@ mp.events.add('adminMute', async (player, targetId, reason) => {
 });
 
 mp.events.add('adminJail', (player, targetId, reason) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const target = mp.players.at(targetId);
     if (target) {
@@ -690,7 +690,7 @@ mp.events.add('adminJail', (player, targetId, reason) => {
 });
 
 mp.events.add('adminKick', async (player, targetId, reason) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const target = mp.players.at(targetId);
     if (target) {
@@ -700,7 +700,7 @@ mp.events.add('adminKick', async (player, targetId, reason) => {
 });
 
 mp.events.add('adminBan', async (player, targetId, reason) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const target = mp.players.at(targetId);
     if (target) {
@@ -711,33 +711,33 @@ mp.events.add('adminBan', async (player, targetId, reason) => {
 });
 
 mp.events.add('adminAddWhitelist', (player, name) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     adminCommands.addWhitelist(name);
     player.outputChatBox(`!{#00FF00}${name} added to whitelist.`);
 });
 
 mp.events.add('adminRemoveWhitelist', (player, name) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     adminCommands.removeWhitelist(name);
     player.outputChatBox(`!{#00FF00}${name} removed from whitelist.`);
 });
 
 mp.events.add('getChatLogs', (player) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const logs = adminCommands.getChatLogs();
     player.call('updateChatLogs', [logs]);
 });
 
 mp.events.add('getReports', (player) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const reports = adminCommands.getReports();
     player.call('updateReports', [reports]);
 });
 
 mp.events.add('handleReport', (player, reportId, action) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     adminCommands.handleReport(reportId, action);
     player.outputChatBox(`!{#00FF00}Report ${action === 'accept' ? 'accepted' : 'rejected'}.`);
@@ -751,7 +751,7 @@ mp.events.add('playerChat', (player, message) => {
 
 // Spectate handlers
 mp.events.add('startSpectate', (player, targetId) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const target = mp.players.at(targetId);
     if (target) {
@@ -762,7 +762,7 @@ mp.events.add('startSpectate', (player, targetId) => {
 });
 
 mp.events.add('stopSpectate', (player) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     player.setVariable('spectating', null);
     player.call('stopSpectating');
@@ -771,7 +771,7 @@ mp.events.add('stopSpectate', (player) => {
 
 // Screenshot handler
 mp.events.add('takeScreenshot', (player, targetId) => {
-    if (!player.getVariable('is_admin')) return;
+    if (!player.getVariable('isAdmin')) return;
     
     const target = mp.players.at(targetId);
     if (target) {
