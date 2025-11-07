@@ -27,7 +27,7 @@ async function getPlayerHUDData(player) {
         }
 
         // Get character data from database
-        const [rows] = await database.query(
+        const rows = await database.query(
             `SELECT 
                 c.name,
                 c.level,
