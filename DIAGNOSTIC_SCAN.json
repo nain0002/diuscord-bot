@@ -1,0 +1,44 @@
+{
+  "scan_timestamp": "2025-11-06T00:00:00Z",
+  "scan_version": "1.0.0",
+  "project_name": "RAGE:MP Ultra Advanced RP Server",
+  "scan_status": "IN_PROGRESS",
+  "summary": {
+    "total_files_scanned": 0,
+    "total_issues_found": 0,
+    "critical_issues": 0,
+    "high_priority": 0,
+    "medium_priority": 0,
+    "low_priority": 0,
+    "warnings": 0
+  },
+  "categories": {
+    "server_modules": {
+      "scanned": 0,
+      "issues": []
+    },
+    "client_modules": {
+      "scanned": 0,
+      "issues": []
+    },
+    "cef_ui": {
+      "scanned": 0,
+      "issues": []
+    },
+    "admin_panel": {
+      "scanned": 0,
+      "issues": []
+    },
+    "dependencies": {
+      "missing": [],
+      "outdated": []
+    }
+  },
+  "detected_issues": [],
+  "performance_metrics": {
+    "startup_time": "TBD",
+    "memory_usage": "TBD",
+    "load_order_issues": []
+  },
+  "recommendations": []
+}
