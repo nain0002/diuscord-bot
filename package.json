@@ -1,7 +1,7 @@
 {
-  "name": "ragemp-roleplay-server",
-  "version": "1.0.0",
-  "description": "Complete RAGE:MP Roleplay Server with Web Admin Panel",
+  "name": "ragemp-elite-roleplay-server",
+  "version": "3.0.0",
+  "description": "Elite RAGE:MP Roleplay Server - Production Ready with AI Self-Healing, Real-time Admin Panel, and Complete Integration",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -13,7 +13,13 @@
     "ragemp",
     "roleplay",
     "gta5",
-    "multiplayer"
+    "multiplayer",
+    "admin-panel",
+    "ai-powered",
+    "glassmorphism",
+    "websocket",
+    "mysql",
+    "production-ready"
   ],
   "author": "",
   "license": "MIT",

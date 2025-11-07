@@ -1,98 +1,78 @@
-# RAGE:MP Roleplay Server - Git Ignore
+# Node modules
+node_modules/
+admin-panel/node_modules/
 
-# ===================================
-# Environment & Secrets
-# ===================================
+# Environment variables
 .env
 .env.local
 .env.production
 
-# ===================================
-# Node.js
-# ===================================
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-yarn.lock
-
-# ===================================
-# RAGE:MP Server Files
-# ===================================
-# Don't commit the actual RAGE:MP server binaries
-*.exe
-*.dll
-*.so
-*.dylib
-server-files/
-!server-files/.gitkeep
-
-# ===================================
 # Logs
-# ===================================
 logs/
 *.log
-admin-*.log
-errors.log
-access.log
+npm-debug.log*
+admin-panel/logs/
 
-# ===================================
 # Database
-# ===================================
-*.sql.backup
+*.sql
 *.db
 *.sqlite
 
-# ===================================
-# IDE & Editors
-# ===================================
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
-Thumbs.db
 
-# ===================================
-# Temporary Files
-# ===================================
+# Build files
+dist/
+build/
+
+# Temporary files
 tmp/
 temp/
 *.tmp
+
+# Server files (generated)
+server.log
+crash.log
+
+# CEF cache
+client_packages/CEF/cache/
+
+# Backup files
+*.backup
 *.bak
-*.cache
+*_backup/
 
-# ===================================
-# Build & Distribution
-# ===================================
-dist/
-build/
-*.zip
-*.rar
-*.7z
+# Config files with sensitive data (keep templates)
+conf.json
+config.json
 
-# ===================================
-# OS Files
-# ===================================
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Desktop.ini
+# Session files
+sessions/
 
-# ===================================
-# Keep Important Folders
-# ===================================
-!client_packages/
-!packages/
-!admin-panel/
+# Upload directories (if any)
+uploads/
+files/
 
-# ===================================
-# Documentation (Keep These)
-# ===================================
-!*.md
-!*.txt
+# Package lock files (optional - uncomment if needed)
+# package-lock.json
+# admin-panel/package-lock.json
+
+# Windows batch logs
+*.bat.log
+
+# Test output
+coverage/
+.nyc_output/
+
+# Personal notes
+NOTES.md
+TODO.md
