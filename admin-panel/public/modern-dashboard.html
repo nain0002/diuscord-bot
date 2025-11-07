@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGE:MP Admin Panel - Dashboard</title>
+    <link rel="stylesheet" href="/css/modern-admin.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <div class="logo-icon">🎮</div>
+                    <div class="logo-text">
+                        <h2>RAGE:MP</h2>
+                        <p>Admin Panel</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="#" class="nav-item active" data-page="dashboard">
+                        <span class="icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="players">
+                        <span class="icon">👥</span>
+                        <span>Live Players</span>
+                        <span class="nav-badge" id="online-count">0</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="chat">
+                        <span class="icon">💬</span>
+                        <span>Live Chat</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="#" class="nav-item" data-page="users">
+                        <span class="icon">👤</span>
+                        <span>User Database</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="vehicles">
+                        <span class="icon">🚗</span>
+                        <span>Vehicles</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="economy">
+                        <span class="icon">💰</span>
+                        <span>Economy</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="bans">
+                        <span class="icon">🚫</span>
+                        <span>Bans & Reports</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="database">
+                        <span class="icon">💾</span>
+                        <span>Database</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Analytics</div>
+                    <a href="#" class="nav-item" data-page="analytics">
+                        <span class="icon">📈</span>
+                        <span>Statistics</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="leaderboards">
+                        <span class="icon">🏆</span>
+                        <span>Leaderboards</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Control</div>
+                    <a href="#" class="nav-item" data-page="server-control">
+                        <span class="icon">🎮</span>
+                        <span>Server Control</span>
+                    </a>
+                    <a href="#" class="nav-item" data-page="logs">
+                        <span class="icon">📝</span>
+                        <span>Logs</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">A</div>
+                    <div class="user-details">
+                        <span class="user-name" id="adminUsername">Admin</span>
+                        <span class="user-role">Administrator</span>
+                    </div>
+                    <button class="btn btn-sm btn-secondary" onclick="logout()" style="margin-left: auto;">⎋</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="topbar-right">
+                    <div class="server-status">
+                        <div class="status-dot" id="serverStatusDot"></div>
+                        <span class="status-text" id="serverStatusText">Connecting...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Dashboard Page -->
+                <div id="page-dashboard" class="page active">
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="stat-online-players">0</div>
+                                    <div class="stat-label">Online Players</div>
+                                </div>
+                                <div class="stat-icon">👥</div>
+                            </div>
+                            <div class="stat-trend trend-up">
+                                <span>↑</span>
+                                <span id="stat-players-trend">Live</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="stat-total-users">0</div>
+                                    <div class="stat-label">Total Users</div>
+                                </div>
+                                <div class="stat-icon">🎭</div>
+                            </div>
+                            <div class="stat-trend trend-up">
+                                <span>↑</span>
+                                <span>All time</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="stat-uptime">0h 0m</div>
+                                    <div class="stat-label">Server Uptime</div>
+                                </div>
+                                <div class="stat-icon">⏱️</div>
+                            </div>
+                            <div class="stat-trend">
+                                <span>🟢</span>
+                                <span>Running</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="stat-memory">0 MB</div>
+                                    <div class="stat-label">Memory Usage</div>
+                                </div>
+                                <div class="stat-icon">💻</div>
+                            </div>
+                            <div class="stat-trend">
+                                <span>📈</span>
+                                <span id="stat-memory-percent">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Grid -->
+                    <div class="grid-2">
+                        <!-- Server Metrics -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Server Metrics</h3>
+                                <button class="btn btn-sm btn-secondary" onclick="refreshMetrics()">🔄 Refresh</button>
+                            </div>
+                            <div class="metrics-grid">
+                                <div class="metric-box">
+                                    <div class="metric-label">Players</div>
+                                    <div class="metric-value" id="metric-players">0/100</div>
+                                </div>
+                                <div class="metric-box">
+                                    <div class="metric-label">Vehicles</div>
+                                    <div class="metric-value" id="metric-vehicles">0</div>
+                                </div>
+                                <div class="metric-box">
+                                    <div class="metric-label">CPU</div>
+                                    <div class="metric-value" id="metric-cpu">0%</div>
+                                </div>
+                                <div class="metric-box">
+                                    <div class="metric-label">RAM</div>
+                                    <div class="metric-value" id="metric-ram">0 MB</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Events -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Recent Events</h3>
+                                <span class="badge badge-info">Live</span>
+                            </div>
+                            <div class="activity-feed" id="recent-events">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <p>Waiting for events...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Actions</h3>
+                        </div>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-primary btn-icon" onclick="showBroadcastModal()">
+                                📢 Broadcast Message
+                            </button>
+                            <button class="btn btn-secondary btn-icon" onclick="refreshAllPlayers()">
+                                🔄 Refresh Players
+                            </button>
+                            <button class="btn btn-secondary btn-icon" onclick="viewServerLogs()">
+                                📝 View Logs
+                            </button>
+                            <button class="btn btn-danger btn-icon" onclick="confirmServerRestart()">
+                                🔄 Restart Server
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Players Page -->
+                <div id="page-players" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Online Players</h3>
+                            <div class="card-actions">
+                                <input type="text" id="player-search-live" placeholder="Search players..." class="search-input" style="width: 250px;">
+                                <button class="btn btn-primary" onclick="loadLivePlayers()">🔄 Refresh</button>
+                            </div>
+                        </div>
+                        <div id="live-players-list" class="players-grid">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>Loading online players...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Chat Page -->
+                <div id="page-chat" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Live Chat Monitor</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary btn-sm" onclick="clearChatHistory()">🗑️ Clear</button>
+                                <span class="badge badge-success">Live</span>
+                            </div>
+                        </div>
+                        <div class="chat-container">
+                            <div class="chat-messages" id="chat-messages">
+                                <p class="text-muted text-center">Waiting for chat messages...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Database Page -->
+                <div id="page-users" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">User Database</h3>
+                            <div class="card-actions">
+                                <input type="text" id="user-search" placeholder="Search users..." class="search-input" style="width: 250px;">
+                                <button class="btn btn-primary" onclick="loadUsers()">🔄 Refresh</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Characters</th>
+                                        <th>Last Login</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody">
+                                    <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination" id="users-pagination"></div>
+                    </div>
+                </div>
+
+                <!-- Database Page -->
+                <div id="page-database" class="page">
+                    <div class="grid-2">
+                        <div class="card">
+                            <h3 class="card-title">Database Tables</h3>
+                            <div id="tables-list" class="list-group">
+                                <p class="text-muted">Loading...</p>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="card-title">Database Statistics</h3>
+                            <div id="database-stats">
+                                <p class="text-muted">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Table Data: <span id="current-table">-</span></h3>
+                        </div>
+                        <div class="table-container">
+                            <div id="table-data"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Server Config Page -->
+                <div id="page-server" class="page">
+                    <div class="card">
+                        <h3 class="card-title">Server Configuration</h3>
+                        <div id="server-config">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">Resources</h3>
+                        <div id="resources-list">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs Page -->
+                <div id="page-logs" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Server Logs</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary" onclick="loadLogs()">🔄 Refresh</button>
+                                <button class="btn btn-danger" onclick="clearLogs()">🗑️ Clear</button>
+                            </div>
+                        </div>
+                        <div class="chat-container" style="height: 600px; background: #0a0a0a;">
+                            <div class="chat-messages" id="logs-content" style="font-family: 'Courier New', monospace; color: #10b981;">
+                                <p class="text-muted">Loading logs...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events Page -->
+                <div id="page-events" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Server Events</h3>
+                            <span class="badge badge-success">Live</span>
+                        </div>
+                        <div class="activity-feed" id="events-list" style="max-height: 700px;">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>Waiting for events...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicles Page -->
+                <div id="page-vehicles" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Vehicle Management</h3>
+                            <div class="card-actions">
+                                <input type="text" id="vehicle-search" placeholder="Search vehicles..." class="search-input">
+                                <button class="btn btn-primary" onclick="loadVehicles()">🔄 Refresh</button>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-grid" style="margin: 20px 0;">
+                            <div class="stat-card">
+                                <div class="stat-label">Total Vehicles</div>
+                                <div class="stat-value" id="total-vehicles">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Unique Models</div>
+                                <div class="stat-value" id="unique-models">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Average Fuel</div>
+                                <div class="stat-value" id="avg-fuel">0%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Model</th>
+                                        <th>Owner</th>
+                                        <th>Plate</th>
+                                        <th>Fuel</th>
+                                        <th>Health</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vehicles-tbody">
+                                    <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Economy Page -->
+                <div id="page-economy" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Economy Overview</h3>
+                            <button class="btn btn-primary" onclick="loadEconomy()">🔄 Refresh</button>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Total Cash</div>
+                                <div class="stat-value" id="total-cash">$0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Total Bank</div>
+                                <div class="stat-value" id="total-bank">$0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Total Dirty Money</div>
+                                <div class="stat-value" id="total-dirty">$0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Avg Player Wealth</div>
+                                <div class="stat-value" id="avg-wealth">$0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="card">
+                            <h3 class="card-title">Top 10 Richest Players</h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Player</th>
+                                            <th>Total Wealth</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="richest-tbody">
+                                        <tr><td colspan="3" class="text-center">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="card-title">Recent Transactions (24h)</h3>
+                            <div id="recent-transactions">
+                                <p class="text-center">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">All Transactions</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Player</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Source</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-tbody">
+                                    <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Page -->
+                <div id="page-analytics" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Server Analytics</h3>
+                            <button class="btn btn-primary" onclick="loadAnalytics()">🔄 Refresh</button>
+                        </div>
+                        
+                        <div class="grid-2">
+                            <div class="card">
+                                <h3 class="card-title">Performance Metrics</h3>
+                                <div id="performance-stats">
+                                    <div class="stat-row">
+                                        <span class="stat-label">Uptime:</span>
+                                        <span class="stat-value" id="perf-uptime">0h</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label">Memory Usage:</span>
+                                        <span class="stat-value" id="perf-memory">0 MB</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label">Platform:</span>
+                                        <span class="stat-value" id="perf-platform">-</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label">Node Version:</span>
+                                        <span class="stat-value" id="perf-node">-</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <h3 class="card-title">Popular Jobs</h3>
+                                <div id="jobs-list">
+                                    <p class="text-center">Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="card-title">Player Activity (Last 30 Days)</h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Unique Players</th>
+                                            <th>Total Sessions</th>
+                                            <th>Total Playtime</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="activity-tbody">
+                                        <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboards Page -->
+                <div id="page-leaderboards" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Server Leaderboards</h3>
+                            <button class="btn btn-primary" onclick="loadLeaderboards()">🔄 Refresh</button>
+                        </div>
+                        
+                        <div class="grid-3">
+                            <div class="card">
+                                <h3 class="card-title">🏆 Richest Players</h3>
+                                <div id="lb-richest" class="leaderboard-list">
+                                    <p class="text-center">Loading...</p>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <h3 class="card-title">⭐ Most Active</h3>
+                                <div id="lb-active" class="leaderboard-list">
+                                    <p class="text-center">Loading...</p>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <h3 class="card-title">📊 Highest Level</h3>
+                                <div id="lb-level" class="leaderboard-list">
+                                    <p class="text-center">Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3 class="card-title">Achievement Statistics</h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Achievement</th>
+                                            <th>Category</th>
+                                            <th>Points</th>
+                                            <th>Unlocked</th>
+                                            <th>%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="achievements-tbody">
+                                        <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Server Control Page -->
+                <div id="page-server-control" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">🎮 Server Control Panel</h3>
+                            <span class="badge badge-warning">Admin Only</span>
+                        </div>
+                        
+                        <div class="grid-2">
+                            <!-- Broadcast Message -->
+                            <div class="card">
+                                <h3 class="card-title">📢 Broadcast Message</h3>
+                                <textarea id="broadcast-message" class="form-control" placeholder="Enter message to broadcast..." rows="3"></textarea>
+                                <button class="btn btn-primary" onclick="sendBroadcast()" style="margin-top: 10px; width: 100%;">
+                                    Send Broadcast
+                                </button>
+                            </div>
+
+                            <!-- Give Money -->
+                            <div class="card">
+                                <h3 class="card-title">💰 Give Money</h3>
+                                <input type="number" id="money-character-id" class="form-control" placeholder="Character ID" style="margin-bottom: 10px;">
+                                <input type="number" id="money-amount" class="form-control" placeholder="Amount" style="margin-bottom: 10px;">
+                                <button class="btn btn-success" onclick="giveMoney()" style="width: 100%;">
+                                    Give Money
+                                </button>
+                            </div>
+
+                            <!-- Set Level -->
+                            <div class="card">
+                                <h3 class="card-title">📊 Set Player Level</h3>
+                                <input type="number" id="level-character-id" class="form-control" placeholder="Character ID" style="margin-bottom: 10px;">
+                                <input type="number" id="level-value" class="form-control" placeholder="Level" style="margin-bottom: 10px;">
+                                <button class="btn btn-primary" onclick="setPlayerLevel()" style="width: 100%;">
+                                    Set Level
+                                </button>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="card">
+                                <h3 class="card-title">⚡ Quick Actions</h3>
+                                <button class="btn btn-success" onclick="healAllPlayers()" style="width: 100%; margin-bottom: 10px;">
+                                    ❤️ Heal All Players
+                                </button>
+                                <button class="btn btn-warning" onclick="clearVehicles()" style="width: 100%; margin-bottom: 10px;">
+                                    🚗 Clear All Vehicles
+                                </button>
+                                <button class="btn btn-danger" onclick="toggleMaintenance()" style="width: 100%;">
+                                    🔧 Toggle Maintenance Mode
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bans & Reports Page -->
+                <div id="page-bans" class="page">
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">🚫 Active Bans</h3>
+                                <button class="btn btn-primary" onclick="loadBans()">🔄 Refresh</button>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Player</th>
+                                            <th>Reason</th>
+                                            <th>Admin</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bans-tbody">
+                                        <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">📋 Player Reports</h3>
+                                <button class="btn btn-primary" onclick="loadReports()">🔄 Refresh</button>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Reporter</th>
+                                            <th>Target</th>
+                                            <th>Reason</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reports-tbody">
+                                        <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="broadcastModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Broadcast Message</h3>
+            <textarea id="broadcastMessage" rows="4" placeholder="Enter message to broadcast..."></textarea>
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="sendBroadcast()">Send</button>
+                <button class="btn btn-secondary" onclick="closeBroadcastModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/modern-dashboard.js"></script>
+</body>
+</html>

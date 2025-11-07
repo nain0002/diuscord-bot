@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGE:MP Ultra Admin Panel - Command Center</title>
+    <link rel="stylesheet" href="css/ultra-admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="cyber-background">
+        <canvas id="particleCanvas"></canvas>
+        <div class="grid-overlay"></div>
+        <div class="neon-pulse"></div>
+    </div>
+
+    <!-- Voice Command Indicator -->
+    <div class="voice-indicator" id="voiceIndicator">
+        <i class="fas fa-microphone"></i>
+        <span>Listening...</span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="ultra-admin-container">
+        
+        <!-- Top Navigation Bar -->
+        <nav class="top-nav glass-panel">
+            <div class="nav-left">
+                <div class="logo-section">
+                    <i class="fas fa-shield-halved"></i>
+                    <span class="logo-text">RAGE:MP</span>
+                    <span class="logo-subtitle">Command Center</span>
+                </div>
+                <div class="server-status">
+                    <div class="status-dot online"></div>
+                    <span id="serverStatus">Online</span>
+                    <span class="status-detail">| <span id="onlineCount">0</span> Players</span>
+                </div>
+            </div>
+            
+            <div class="nav-center">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="globalSearch" placeholder="Search players, logs, reports..." class="global-search">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+            </div>
+            
+            <div class="nav-right">
+                <button class="icon-btn" onclick="toggleVoiceCommands()" title="Voice Commands (V)">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="icon-btn" onclick="toggleAIAssistant()" title="AI Assistant">
+                    <i class="fas fa-robot"></i>
+                </button>
+                <button class="icon-btn" onclick="toggleNotifications()" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notifBadge">0</span>
+                </button>
+                <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                <div class="admin-profile" onclick="toggleProfileMenu()">
+                    <img src="https://via.placeholder.com/40" alt="Admin" class="profile-pic">
+                    <span id="adminName">Admin</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            
+            <!-- Sidebar Navigation -->
+            <aside class="sidebar glass-panel" id="sidebar">
+                <div class="sidebar-header">
+                    <span>NAVIGATION</span>
+                    <button class="collapse-btn" onclick="toggleSidebar()">
+                        <i class="fas fa-angles-left"></i>
+                    </button>
+                </div>
+                
+                <div class="nav-menu">
+                    <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="players" onclick="switchPage('players')">
+                        <i class="fas fa-users"></i>
+                        <span>Players</span>
+                        <span class="nav-badge" id="playersBadge">0</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="map" onclick="switchPage('map')">
+                        <i class="fas fa-map"></i>
+                        <span>Live Map</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="vehicles" onclick="switchPage('vehicles')">
+                        <i class="fas fa-car"></i>
+                        <span>Vehicles</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="reports" onclick="switchPage('reports')">
+                        <i class="fas fa-flag"></i>
+                        <span>Reports</span>
+                        <span class="nav-badge alert" id="reportsBadge">0</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="bans" onclick="switchPage('bans')">
+                        <i class="fas fa-ban"></i>
+                        <span>Bans</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="logs" onclick="switchPage('logs')">
+                        <i class="fas fa-list"></i>
+                        <span>Admin Logs</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="analytics" onclick="switchPage('analytics')">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Analytics</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="permissions" onclick="switchPage('permissions')">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Permissions</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="tools" onclick="switchPage('tools')">
+                        <i class="fas fa-wrench"></i>
+                        <span>Admin Tools</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                    <div class="nav-item" data-page="settings" onclick="switchPage('settings')">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                        <div class="nav-glow"></div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-footer">
+                    <div class="server-info">
+                        <div class="info-row">
+                            <i class="fas fa-server"></i>
+                            <span>Server Load: <span id="serverLoad">0%</span></span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-memory"></i>
+                            <span>RAM: <span id="ramUsage">0 MB</span></span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="content-area">
+                
+                <!-- Dashboard Page -->
+                <div class="page active" id="page-dashboard">
+                    <div class="page-header">
+                        <h1>Dashboard</h1>
+                        <div class="page-actions">
+                            <button class="btn-primary" onclick="refreshDashboard()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon players">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="totalPlayers">0</h3>
+                                <p>Online Players</p>
+                            </div>
+                            <div class="stat-chart">
+                                <canvas id="playersChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon vehicles">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="totalVehicles">0</h3>
+                                <p>Active Vehicles</p>
+                            </div>
+                            <div class="stat-chart">
+                                <canvas id="vehiclesChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon reports">
+                                <i class="fas fa-flag"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="pendingReports">0</h3>
+                                <p>Pending Reports</p>
+                            </div>
+                            <div class="stat-chart">
+                                <canvas id="reportsChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon performance">
+                                <i class="fas fa-gauge-high"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="serverPing">0ms</h3>
+                                <p>Server Ping</p>
+                            </div>
+                            <div class="stat-chart">
+                                <canvas id="pingChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Activity & Charts -->
+                    <div class="dashboard-row">
+                        <div class="chart-panel glass-panel">
+                            <div class="panel-header">
+                                <h3><i class="fas fa-chart-area"></i> Server Performance</h3>
+                                <select id="perfTimeRange" onchange="updatePerformanceChart()">
+                                    <option value="1h">Last Hour</option>
+                                    <option value="6h">Last 6 Hours</option>
+                                    <option value="24h" selected>Last 24 Hours</option>
+                                    <option value="7d">Last 7 Days</option>
+                                </select>
+                            </div>
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+
+                        <div class="activity-panel glass-panel">
+                            <div class="panel-header">
+                                <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+                            </div>
+                            <div class="activity-list" id="recentActivity">
+                                <!-- Activity items populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Players Page -->
+                <div class="page" id="page-players">
+                    <div class="page-header">
+                        <h1>Player Management</h1>
+                        <div class="page-actions">
+                            <input type="text" class="search-input" placeholder="Search players..." id="playerSearch">
+                            <button class="btn-primary" onclick="refreshPlayers()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="players-grid">
+                        <div class="player-filters glass-panel">
+                            <h4>Filters</h4>
+                            <div class="filter-group">
+                                <label>Status</label>
+                                <select id="playerStatusFilter" onchange="filterPlayers()">
+                                    <option value="all">All</option>
+                                    <option value="online">Online</option>
+                                    <option value="offline">Offline</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Sort By</label>
+                                <select id="playerSortFilter" onchange="filterPlayers()">
+                                    <option value="name">Name</option>
+                                    <option value="level">Level</option>
+                                    <option value="playtime">Playtime</option>
+                                    <option value="money">Money</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="players-list glass-panel">
+                            <div class="table-container" id="playersTable">
+                                <!-- Players table populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Map Page -->
+                <div class="page" id="page-map">
+                    <div class="page-header">
+                        <h1>Live Player Map</h1>
+                        <div class="page-actions">
+                            <button class="btn-primary" onclick="centerMap()">
+                                <i class="fas fa-crosshairs"></i> Center
+                            </button>
+                            <button class="btn-primary" onclick="toggleMapMode()">
+                                <i class="fas fa-layer-group"></i> Toggle Mode
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="map-container glass-panel">
+                        <canvas id="playerMap" width="1200" height="600"></canvas>
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <span class="dot online"></span> Online
+                            </div>
+                            <div class="legend-item">
+                                <span class="dot admin"></span> Admin
+                            </div>
+                            <div class="legend-item">
+                                <span class="dot vehicle"></span> In Vehicle
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional pages... (truncated for brevity, will add in next file) -->
+
+            </main>
+
+            <!-- AI Assistant Panel (Right Side) -->
+            <aside class="ai-assistant glass-panel" id="aiAssistant" style="display: none;">
+                <div class="ai-header">
+                    <div class="ai-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>AI Assistant</h3>
+                    <button class="close-btn" onclick="toggleAIAssistant()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="ai-status">
+                    <span class="status-indicator active"></span>
+                    <span>Active & Monitoring</span>
+                </div>
+
+                <div class="ai-suggestions" id="aiSuggestions">
+                    <h4>Smart Suggestions</h4>
+                    <div class="suggestion-list">
+                        <!-- AI suggestions populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="ai-alerts" id="aiAlerts">
+                    <h4>Suspicious Activity</h4>
+                    <div class="alert-list">
+                        <!-- AI alerts populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="ai-chat" id="aiChat">
+                    <h4>Ask AI</h4>
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Chat messages -->
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="aiChatInput" placeholder="Ask anything...">
+                        <button onclick="sendAIMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Player Context Menu -->
+    <div class="context-menu glass-panel" id="playerContextMenu" style="display: none;">
+        <div class="context-item" onclick="contextViewPlayer()">
+            <i class="fas fa-eye"></i> View Details
+        </div>
+        <div class="context-item" onclick="contextTeleport()">
+            <i class="fas fa-location-dot"></i> Teleport To
+        </div>
+        <div class="context-item" onclick="contextFreeze()">
+            <i class="fas fa-snowflake"></i> Freeze
+        </div>
+        <div class="context-item" onclick="contextKick()">
+            <i class="fas fa-shoe-prints"></i> Kick
+        </div>
+        <div class="context-item danger" onclick="contextBan()">
+            <i class="fas fa-ban"></i> Ban
+        </div>
+    </div>
+
+    <!-- Modal Templates -->
+    <div class="modal" id="playerModal" style="display: none;">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Player Details</h2>
+                <button class="close-btn" onclick="closeModal('playerModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="playerModalBody">
+                <!-- Player details populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="js/ultra-admin.js"></script>
+    <script src="js/ultra-admin-ai.js"></script>
+    <script src="js/ultra-admin-voice.js"></script>
+    <script src="js/ultra-admin-map.js"></script>
+</body>
+</html>

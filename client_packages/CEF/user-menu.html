@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Menu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .menu-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(15px);
+        }
+
+        .menu-container.active {
+            display: flex;
+        }
+
+        .menu-panel {
+            width: 85%;
+            max-width: 1200px;
+            height: 80vh;
+            background: rgba(15, 15, 25, 0.8);
+            backdrop-filter: blur(35px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .menu-header {
+            padding: 25px 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-info {
+            color: #fff;
+        }
+
+        .user-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .user-subtitle {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e74c3c;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(231, 76, 60, 0.4);
+            transform: rotate(90deg);
+        }
+
+        /* Content */
+        .menu-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        /* Left Column - Stats */
+        .stats-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-title {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+        }
+
+        /* Right Column - Actions */
+        .actions-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .action-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .action-card:hover {
+            background: rgba(46, 204, 113, 0.15);
+            border-color: #2ecc71;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.3);
+        }
+
+        .action-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .action-title {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .action-desc {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+        }
+
+        /* Skills Section */
+        .skills-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .skill-item {
+            margin-bottom: 15px;
+        }
+
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .skill-name {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .skill-level {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+        }
+
+        .skill-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .skill-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        /* Settings Toggle */
+        .settings-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #2ecc71;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        /* Scrollbar */
+        .menu-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .menu-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .menu-content::-webkit-scrollbar-thumb {
+            background: rgba(46, 204, 113, 0.3);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-container" id="menuContainer">
+        <div class="menu-panel">
+            <!-- Header -->
+            <div class="menu-header">
+                <div class="header-left">
+                    <div class="avatar" id="avatar">👤</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Player Name</div>
+                        <div class="user-subtitle">Level <span id="userLevel">1</span> • <span id="jobName">Unemployed</span></div>
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeMenu()">✕</button>
+            </div>
+
+            <!-- Content -->
+            <div class="menu-content">
+                <!-- Left Column -->
+                <div class="stats-section">
+                    <div class="section-title">📊 Statistics</div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-icon">💰</div>
+                            <div class="stat-value">$<span id="statMoney">0</span></div>
+                            <div class="stat-label">Cash</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon">🏦</div>
+                            <div class="stat-value">$<span id="statBank">0</span></div>
+                            <div class="stat-label">Bank</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon">⏱️</div>
+                            <div class="stat-value"><span id="statPlaytime">0</span>h</div>
+                            <div class="stat-label">Playtime</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon">🚗</div>
+                            <div class="stat-value"><span id="statVehicles">0</span></div>
+                            <div class="stat-label">Vehicles</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">🎯 Skills</div>
+                    <div class="skills-section">
+                        <div class="skill-item">
+                            <div class="skill-header">
+                                <span class="skill-name">Driving</span>
+                                <span class="skill-level"><span id="skillDriving">0</span>/100</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-fill" id="skillDrivingBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-header">
+                                <span class="skill-name">Shooting</span>
+                                <span class="skill-level"><span id="skillShooting">0</span>/100</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-fill" id="skillShootingBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-header">
+                                <span class="skill-name">Stamina</span>
+                                <span class="skill-level"><span id="skillStamina">0</span>/100</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-fill" id="skillStaminaBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">⚙️ Settings</div>
+                    <div class="settings-section">
+                        <div class="setting-item">
+                            <span class="setting-label">Show HUD</span>
+                            <div class="toggle-switch active" onclick="toggleSetting('hud', this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <span class="setting-label">Notifications</span>
+                            <div class="toggle-switch active" onclick="toggleSetting('notifications', this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <span class="setting-label">Voice Chat</span>
+                            <div class="toggle-switch active" onclick="toggleSetting('voice', this)">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="actions-section">
+                    <div class="section-title">🎮 Quick Actions</div>
+                    <div class="actions-grid">
+                        <div class="action-card" onclick="menuAction('phone')">
+                            <div class="action-icon">📱</div>
+                            <div class="action-title">Phone</div>
+                            <div class="action-desc">Open your phone</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('animations')">
+                            <div class="action-icon">💃</div>
+                            <div class="action-title">Animations</div>
+                            <div class="action-desc">Play animations</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('walkstyle')">
+                            <div class="action-icon">🚶</div>
+                            <div class="action-title">Walk Style</div>
+                            <div class="action-desc">Change walk style</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('accessories')">
+                            <div class="action-icon">👓</div>
+                            <div class="action-title">Accessories</div>
+                            <div class="action-desc">Manage accessories</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('vehicle')">
+                            <div class="action-icon">🚗</div>
+                            <div class="action-title">Vehicle Menu</div>
+                            <div class="action-desc">Lock/unlock, engine</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('gps')">
+                            <div class="action-icon">🗺️</div>
+                            <div class="action-title">GPS</div>
+                            <div class="action-desc">Set waypoint</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('id')">
+                            <div class="action-icon">🆔</div>
+                            <div class="action-title">Show ID</div>
+                            <div class="action-desc">Show to nearby players</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('help')">
+                            <div class="action-icon">❓</div>
+                            <div class="action-title">Help</div>
+                            <div class="action-desc">Commands & info</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">🏢 Services</div>
+                    <div class="actions-grid">
+                        <div class="action-card" onclick="menuAction('bank')">
+                            <div class="action-icon">🏦</div>
+                            <div class="action-title">Bank</div>
+                            <div class="action-desc">Access banking</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('shop')">
+                            <div class="action-icon">🛒</div>
+                            <div class="action-title">Shops</div>
+                            <div class="action-desc">Browse shops</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('jobs')">
+                            <div class="action-icon">💼</div>
+                            <div class="action-title">Jobs</div>
+                            <div class="action-desc">View job list</div>
+                        </div>
+                        <div class="action-card" onclick="menuAction('garage')">
+                            <div class="action-icon">🏠</div>
+                            <div class="action-title">Garage</div>
+                            <div class="action-desc">Manage vehicles</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openMenu() {
+            document.getElementById('menuContainer').classList.add('active');
+            mp.trigger('setCursorState', true);
+            mp.trigger('getUserMenuData');
+        }
+
+        function closeMenu() {
+            document.getElementById('menuContainer').classList.remove('active');
+            mp.trigger('setCursorState', false);
+            mp.trigger('userMenuClosed');
+        }
+
+        function updateMenuData(data) {
+            // User info
+            document.getElementById('userName').textContent = data.name || 'Player';
+            document.getElementById('userLevel').textContent = data.level || 1;
+            document.getElementById('jobName').textContent = data.job || 'Unemployed';
+            document.getElementById('avatar').textContent = (data.name || 'P').charAt(0);
+
+            // Stats
+            document.getElementById('statMoney').textContent = (data.money || 0).toLocaleString();
+            document.getElementById('statBank').textContent = (data.bank || 0).toLocaleString();
+            document.getElementById('statPlaytime').textContent = data.playtime || 0;
+            document.getElementById('statVehicles').textContent = data.vehicles || 0;
+
+            // Skills
+            updateSkill('Driving', data.skills?.driving || 0);
+            updateSkill('Shooting', data.skills?.shooting || 0);
+            updateSkill('Stamina', data.skills?.stamina || 0);
+        }
+
+        function updateSkill(name, value) {
+            const id = name.toLowerCase();
+            document.getElementById(`skill${name}`).textContent = value;
+            document.getElementById(`skill${name}Bar`).style.width = value + '%';
+        }
+
+        function menuAction(action) {
+            mp.trigger('userMenuAction', action);
+        }
+
+        function toggleSetting(setting, element) {
+            element.classList.toggle('active');
+            const isActive = element.classList.contains('active');
+            mp.trigger('userMenuToggleSetting', setting, isActive);
+        }
+
+        // ESC key to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeMenu();
+            }
+        });
+    </script>
+</body>
+</html>
