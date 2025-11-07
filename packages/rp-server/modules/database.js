@@ -95,30 +95,45 @@ const database = {
                     INDEX idx_char_name (char_name)
                 )`,
 
-                // Bank accounts table
+                // Bank accounts table (Enhanced for new banking system)
                 `CREATE TABLE IF NOT EXISTS bank_accounts (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     character_id INT NOT NULL,
                     account_number VARCHAR(20) UNIQUE NOT NULL,
-                    balance INT DEFAULT 10000,
-                    account_type VARCHAR(20) DEFAULT 'checking',
-                    pin VARCHAR(4) DEFAULT '0000',
+                    balance BIGINT DEFAULT 10000,
+                    account_type ENUM('personal', 'business', 'savings', 'manager') DEFAULT 'personal',
+                    pin VARCHAR(255) NOT NULL,
+                    card_number VARCHAR(16) UNIQUE,
+                    status ENUM('active', 'frozen', 'closed') DEFAULT 'active',
+                    interest_rate DECIMAL(5,2) DEFAULT 0.05,
+                    overdraft_limit INT DEFAULT 0,
+                    last_transaction TIMESTAMP NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
                     INDEX idx_character_id (character_id),
-                    INDEX idx_account_number (account_number)
+                    INDEX idx_account_number (account_number),
+                    INDEX idx_card_number (card_number),
+                    INDEX idx_status (status)
                 )`,
 
-                // Bank transactions table
+                // Bank transactions table (Enhanced)
                 `CREATE TABLE IF NOT EXISTS bank_transactions (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     account_id INT NOT NULL,
-                    transaction_type VARCHAR(20) NOT NULL,
-                    amount INT NOT NULL,
+                    transaction_type ENUM('deposit', 'withdraw', 'transfer_in', 'transfer_out', 'interest', 'fee', 'loan', 'robbery') NOT NULL,
+                    amount BIGINT NOT NULL,
+                    receiver_id INT NULL,
+                    receiver_account VARCHAR(20) NULL,
                     description TEXT,
+                    location VARCHAR(100),
+                    ip_address VARCHAR(45),
+                    status ENUM('pending', 'completed', 'failed', 'reversed') DEFAULT 'completed',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE CASCADE,
-                    INDEX idx_account_id (account_id)
+                    INDEX idx_account_id (account_id),
+                    INDEX idx_receiver_id (receiver_id),
+                    INDEX idx_created_at (created_at),
+                    INDEX idx_transaction_type (transaction_type)
                 )`,
 
                 // Vehicles table
@@ -360,6 +375,95 @@ const database = {
                     INDEX idx_character_id (character_id),
                     INDEX idx_transaction_type (transaction_type),
                     INDEX idx_created_at (created_at)
+                )`,
+
+                // Bank branches/locations table
+                `CREATE TABLE IF NOT EXISTS bank_branches (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL,
+                    position_x FLOAT NOT NULL,
+                    position_y FLOAT NOT NULL,
+                    position_z FLOAT NOT NULL,
+                    vault_cash BIGINT DEFAULT 1000000,
+                    status ENUM('open', 'closed', 'robbery', 'lockdown') DEFAULT 'open',
+                    manager_id INT NULL,
+                    last_robbery TIMESTAMP NULL,
+                    robbery_cooldown INT DEFAULT 3600,
+                    security_level INT DEFAULT 3,
+                    blip_sprite INT DEFAULT 108,
+                    blip_color INT DEFAULT 2,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_status (status),
+                    INDEX idx_manager_id (manager_id)
+                )`,
+
+                // Robbery logs table
+                `CREATE TABLE IF NOT EXISTS robbery_logs (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    bank_id INT NOT NULL,
+                    robber_id INT NOT NULL,
+                    stolen_amount BIGINT DEFAULT 0,
+                    success BOOLEAN DEFAULT FALSE,
+                    police_called BOOLEAN DEFAULT FALSE,
+                    arrests INT DEFAULT 0,
+                    duration INT DEFAULT 0,
+                    location VARCHAR(100),
+                    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (bank_id) REFERENCES bank_branches(id) ON DELETE CASCADE,
+                    FOREIGN KEY (robber_id) REFERENCES characters(id) ON DELETE CASCADE,
+                    INDEX idx_bank_id (bank_id),
+                    INDEX idx_robber_id (robber_id),
+                    INDEX idx_date (date)
+                )`,
+
+                // Bank loans table
+                `CREATE TABLE IF NOT EXISTS bank_loans (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    account_id INT NOT NULL,
+                    amount BIGINT NOT NULL,
+                    interest_rate DECIMAL(5,2) DEFAULT 5.00,
+                    remaining_balance BIGINT NOT NULL,
+                    monthly_payment INT DEFAULT 0,
+                    status ENUM('active', 'paid', 'defaulted') DEFAULT 'active',
+                    approved_by INT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    due_date TIMESTAMP NULL,
+                    FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE CASCADE,
+                    INDEX idx_account_id (account_id),
+                    INDEX idx_status (status)
+                )`,
+
+                // ATM locations table
+                `CREATE TABLE IF NOT EXISTS atm_locations (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    position_x FLOAT NOT NULL,
+                    position_y FLOAT NOT NULL,
+                    position_z FLOAT NOT NULL,
+                    heading FLOAT DEFAULT 0,
+                    cash_available INT DEFAULT 50000,
+                    status ENUM('active', 'empty', 'broken', 'robbed') DEFAULT 'active',
+                    last_robbery TIMESTAMP NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_status (status)
+                )`,
+
+                // Bank manager permissions table
+                `CREATE TABLE IF NOT EXISTS bank_manager_permissions (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    character_id INT NOT NULL,
+                    bank_id INT NOT NULL,
+                    role ENUM('manager', 'teller', 'guard', 'employee') DEFAULT 'employee',
+                    can_approve_loans BOOLEAN DEFAULT FALSE,
+                    can_freeze_accounts BOOLEAN DEFAULT FALSE,
+                    can_view_all_accounts BOOLEAN DEFAULT FALSE,
+                    can_hire BOOLEAN DEFAULT FALSE,
+                    salary INT DEFAULT 5000,
+                    hired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
+                    FOREIGN KEY (bank_id) REFERENCES bank_branches(id) ON DELETE CASCADE,
+                    INDEX idx_character_id (character_id),
+                    INDEX idx_bank_id (bank_id),
+                    INDEX idx_role (role)
                 )`
             ];
 
