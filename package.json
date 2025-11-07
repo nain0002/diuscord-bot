@@ -1,6 +1,6 @@
 {
   "name": "ragemp-elite-roleplay-server",
-  "version": "3.0.0",
+  "version": "3.0.7",
   "description": "Elite RAGE:MP Roleplay Server - Production Ready with AI Self-Healing, Real-time Admin Panel, and Complete Integration",
   "main": "index.js",
   "scripts": {
