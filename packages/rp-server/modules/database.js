@@ -374,6 +374,36 @@ const database = {
                 // Column likely already exists
             }
             
+            try {
+                await pool.query(`ALTER TABLE characters ADD COLUMN gun_slots JSON DEFAULT NULL`);
+            } catch (e) {
+                // Column likely already exists
+            }
+            
+            try {
+                await pool.query(`ALTER TABLE characters ADD COLUMN hotbar JSON DEFAULT NULL`);
+            } catch (e) {
+                // Column likely already exists
+            }
+            
+            try {
+                await pool.query(`ALTER TABLE characters ADD COLUMN hunger INT DEFAULT 100`);
+            } catch (e) {
+                // Column likely already exists
+            }
+            
+            try {
+                await pool.query(`ALTER TABLE characters ADD COLUMN thirst INT DEFAULT 100`);
+            } catch (e) {
+                // Column likely already exists
+            }
+            
+            try {
+                await pool.query(`ALTER TABLE characters ADD COLUMN hud_settings TEXT DEFAULT NULL`);
+            } catch (e) {
+                // Column likely already exists
+            }
+            
             // Insert default admin permissions if not exists
             try {
                 const permissions = [
