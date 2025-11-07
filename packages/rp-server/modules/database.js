@@ -483,18 +483,6 @@ const database = {
         }
     },
 
-    execute: async (sql, params = []) => {
-        try {
-            if (!pool) {
-                throw new Error('Database connection not initialized. Call connect() first.');
-            }
-            return await pool.execute(sql, params);
-        } catch (error) {
-            console.error('[Database] Execute error:', error);
-            throw error;
-        }
-    },
-
     getConnection: async () => {
         if (!pool) {
             throw new Error('Database connection not initialized. Call connect() first.');
