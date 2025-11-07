@@ -699,7 +699,64 @@ mp.events.add('destroyItem', async (player, index) => {
     }
 });
 
-// Equip Weapon
+// Equip Item (Generic)
+mp.events.add('equipItem', async (player, index) => {
+    try {
+        if (!player || !mp.players.exists(player)) return;
+
+        const characterId = player.getVariable('character_id');
+        if (!characterId) {
+            player.outputChatBox('!{#FF0000}[Inventory] You must be logged in');
+            return;
+        }
+
+        // Validate index
+        const parsedIndex = parseInt(index);
+        if (isNaN(parsedIndex) || parsedIndex < 0) {
+            player.outputChatBox('!{#FF0000}[Inventory] Invalid item index');
+            return;
+        }
+
+        // Get the item
+        const items = await database.query(
+            'SELECT * FROM inventory WHERE character_id = ? ORDER BY id LIMIT 1 OFFSET ?',
+            [characterId, parsedIndex]
+        );
+
+        if (items.length === 0) {
+            player.outputChatBox('!{#FF0000}[Inventory] Item not found');
+            return;
+        }
+
+        const item = items[0];
+
+        // Check if item is equippable
+        const itemData = Inventory.ITEM_DATA[item.item_name];
+        if (!itemData || itemData.type !== 'weapon') {
+            player.outputChatBox('!{#FF0000}[Inventory] This item cannot be equipped');
+            return;
+        }
+
+        // Equip the weapon
+        const weaponHash = Inventory.getWeaponHash(item.item_name);
+        if (weaponHash) {
+            player.giveWeapon(weaponHash, 100);
+            player.call('inventoryNotification', [`Equipped ${item.item_name}`, 'success']);
+            player.outputChatBox(`!{#00FF88}[Inventory] Equipped ${item.item_name}`);
+        }
+
+        // Refresh inventory
+        const data = await getFullInventoryData(player);
+        if (data) {
+            player.call('updateInventory', [JSON.stringify(data)]);
+        }
+    } catch (error) {
+        console.error('[Inventory] equipItem error:', error);
+        player.outputChatBox('!{#FF0000}[Inventory] Failed to equip item');
+    }
+});
+
+// Equip Weapon (to specific slot)
 mp.events.add('equipWeapon', async (player, slot, weaponName) => {
     try {
         if (!player || !mp.players.exists(player)) return;
