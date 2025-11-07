@@ -61,6 +61,9 @@ console.log('      ✅ Authentication system loaded');
 // PHASE 4: Load Gameplay Systems
 // ============================================================================
 console.log('\n[4/8] 🎮 Loading gameplay systems...');
+require('./modules/hud-system');  // Elite HUD System v3.0.0
+console.log('      ✅ Elite HUD system loaded');
+
 require('./modules/banking');
 console.log('      ✅ Banking system loaded');
 

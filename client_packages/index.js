@@ -24,7 +24,7 @@ console.log('[Client] Core modules loaded');
 // New enhanced handlers
 require('./loading-screen.js');    // Loading screen (shows first)
 require('./auth.js');              // Modern authentication handler
-// require('./hud-handler.js');    // HUD DISABLED per user request
+require('./hud-handler-modern.js');  // Elite HUD System v3.0.0 ✨
 // require('./inventory.js');      // OLD inventory - DISABLED
 require('./inventory-handler-modern.js'); // MODERN INVENTORY SYSTEM ✨
 require('./admin-menu-handler.js'); // Admin menu (F6) - Basic

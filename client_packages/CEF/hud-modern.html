@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite HUD</title>
+    <link rel="stylesheet" href="css/hud-modern.css">
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="hud-background">
+        <div class="gradient-glow"></div>
+        <div class="particles-container" id="particlesContainer"></div>
+    </div>
+
+    <!-- Main HUD Container -->
+    <div class="hud-container" id="hudContainer">
+        
+        <!-- Top Left - Player Status -->
+        <div class="hud-section top-left" id="playerStatus">
+            <div class="glass-panel player-info">
+                <div class="panel-header">
+                    <span class="icon">👤</span>
+                    <span class="player-name" id="playerName">Player</span>
+                    <span class="player-level" id="playerLevel">Lv. 1</span>
+                </div>
+                
+                <!-- Health Bar -->
+                <div class="stat-bar health-bar">
+                    <div class="stat-icon">❤️</div>
+                    <div class="stat-progress">
+                        <div class="stat-fill health-fill" id="healthFill"></div>
+                        <div class="stat-text" id="healthText">100</div>
+                    </div>
+                </div>
+
+                <!-- Armor Bar -->
+                <div class="stat-bar armor-bar">
+                    <div class="stat-icon">🛡️</div>
+                    <div class="stat-progress">
+                        <div class="stat-fill armor-fill" id="armorFill"></div>
+                        <div class="stat-text" id="armorText">0</div>
+                    </div>
+                </div>
+
+                <!-- Hunger Bar -->
+                <div class="stat-bar hunger-bar">
+                    <div class="stat-icon">🍔</div>
+                    <div class="stat-progress">
+                        <div class="stat-fill hunger-fill" id="hungerFill"></div>
+                        <div class="stat-text" id="hungerText">100</div>
+                    </div>
+                </div>
+
+                <!-- Thirst Bar -->
+                <div class="stat-bar thirst-bar">
+                    <div class="stat-icon">💧</div>
+                    <div class="stat-progress">
+                        <div class="stat-fill thirst-fill" id="thirstFill"></div>
+                        <div class="stat-text" id="thirstText">100</div>
+                    </div>
+                </div>
+
+                <!-- XP Progress Bar -->
+                <div class="xp-bar">
+                    <div class="xp-fill" id="xpFill"></div>
+                    <div class="xp-text" id="xpText">XP: 0 / 1000</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Right - Money & Time -->
+        <div class="hud-section top-right" id="moneyTime">
+            <div class="glass-panel money-panel">
+                <div class="money-item">
+                    <span class="money-icon">💵</span>
+                    <span class="money-label">Cash</span>
+                    <span class="money-value" id="cashValue">$0</span>
+                </div>
+                <div class="money-item">
+                    <span class="money-icon">🏦</span>
+                    <span class="money-label">Bank</span>
+                    <span class="money-value" id="bankValue">$0</span>
+                </div>
+            </div>
+
+            <div class="glass-panel time-panel">
+                <div class="time-display">
+                    <div class="game-time" id="gameTime">12:00</div>
+                    <div class="real-time" id="realTime">00:00:00</div>
+                </div>
+                <div class="date-display" id="dateDisplay">Jan 1, 2025</div>
+            </div>
+
+            <div class="glass-panel weather-panel" id="weatherPanel">
+                <span class="weather-icon" id="weatherIcon">☀️</span>
+                <span class="weather-text" id="weatherText">Clear</span>
+            </div>
+        </div>
+
+        <!-- Bottom Left - Location & Mission -->
+        <div class="hud-section bottom-left" id="locationMission">
+            <div class="glass-panel location-panel">
+                <div class="compass" id="compass">
+                    <div class="compass-direction">N</div>
+                    <div class="compass-needle" id="compassNeedle"></div>
+                </div>
+                <div class="location-info">
+                    <div class="street-name" id="streetName">Unknown Street</div>
+                    <div class="zone-name" id="zoneName">Los Santos</div>
+                </div>
+            </div>
+
+            <div class="glass-panel mission-panel" id="missionPanel">
+                <div class="mission-header">
+                    <span class="mission-icon">🎯</span>
+                    <span class="mission-title" id="missionTitle">No Active Mission</span>
+                </div>
+                <div class="mission-objectives" id="missionObjectives"></div>
+                <div class="mission-distance" id="missionDistance"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Right - Weapon & Vehicle -->
+        <div class="hud-section bottom-right" id="weaponVehicle">
+            <!-- Weapon Display -->
+            <div class="glass-panel weapon-panel" id="weaponPanel">
+                <div class="weapon-name" id="weaponName">Unarmed</div>
+                <div class="weapon-ammo">
+                    <span class="ammo-current" id="ammoCurrent">0</span>
+                    <span class="ammo-separator">/</span>
+                    <span class="ammo-reserve" id="ammoReserve">0</span>
+                </div>
+                <div class="weapon-icon" id="weaponIcon">✊</div>
+            </div>
+
+            <!-- Vehicle Display -->
+            <div class="glass-panel vehicle-panel" id="vehiclePanel" style="display: none;">
+                <div class="speedometer">
+                    <div class="speed-value" id="speedValue">0</div>
+                    <div class="speed-unit">mph</div>
+                </div>
+                <div class="vehicle-stats">
+                    <div class="fuel-bar">
+                        <span class="fuel-icon">⛽</span>
+                        <div class="fuel-progress">
+                            <div class="fuel-fill" id="fuelFill"></div>
+                        </div>
+                        <span class="fuel-text" id="fuelText">100%</span>
+                    </div>
+                    <div class="vehicle-indicators">
+                        <span class="indicator engine" id="engineIndicator" title="Engine">🔧</span>
+                        <span class="indicator lights" id="lightsIndicator" title="Lights">💡</span>
+                        <span class="indicator lock" id="lockIndicator" title="Lock">🔒</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center - Notifications -->
+        <div class="notification-container" id="notificationContainer"></div>
+
+        <!-- Voice Chat Indicator -->
+        <div class="voice-indicator" id="voiceIndicator">
+            <div class="voice-icon">🎤</div>
+            <div class="voice-wave">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <!-- Damage Overlay -->
+        <div class="damage-overlay" id="damageOverlay"></div>
+
+        <!-- Settings Button -->
+        <div class="hud-settings-btn" id="hudSettingsBtn">⚙️</div>
+
+        <!-- Settings Menu -->
+        <div class="hud-settings-menu" id="hudSettingsMenu" style="display: none;">
+            <div class="glass-panel settings-panel">
+                <div class="settings-header">
+                    <h3>HUD Settings</h3>
+                    <button class="close-btn" id="closeSettingsBtn">✕</button>
+                </div>
+                <div class="settings-content">
+                    <!-- Toggle Options -->
+                    <div class="setting-item">
+                        <label>Show Player Status</label>
+                        <input type="checkbox" id="togglePlayerStatus" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label>Show Money</label>
+                        <input type="checkbox" id="toggleMoney" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label>Show Location</label>
+                        <input type="checkbox" id="toggleLocation" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label>Show Weapon</label>
+                        <input type="checkbox" id="toggleWeapon" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label>Show Vehicle Info</label>
+                        <input type="checkbox" id="toggleVehicle" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label>Show Compass</label>
+                        <input type="checkbox" id="toggleCompass" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label>Show Mission Tracker</label>
+                        <input type="checkbox" id="toggleMission" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label>Weather Effects</label>
+                        <input type="checkbox" id="toggleWeatherEffects" checked>
+                    </div>
+
+                    <!-- Theme Selection -->
+                    <div class="setting-item">
+                        <label>HUD Theme</label>
+                        <select id="themeSelect">
+                            <option value="blue">Neon Blue</option>
+                            <option value="purple">Neon Purple</option>
+                            <option value="red">Neon Red</option>
+                            <option value="green">Neon Green</option>
+                            <option value="white">Pure White</option>
+                        </select>
+                    </div>
+
+                    <button class="save-settings-btn" id="saveSettingsBtn">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/hud-modern.js"></script>
+</body>
+</html>
